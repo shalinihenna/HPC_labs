@@ -13,6 +13,41 @@
 #include <immintrin.h>
 #include <time.h> 
 
+
+
+//Funcion que crea y asigna memoria una lista de float de tamaño N
+//Entrada:	-N, entero que indica el largo de la lista a crear
+//Salida:	-Puntero de float para la representacion de la lista
+float * createList(int N){
+	int i;
+	float * lista = (float*)malloc(sizeof(float) * N);
+	return lista;
+}
+
+//Funcion que lee una lista de numeros
+//Entrada:	-cadena de char que almacena el nombre del archivo a leer
+//			-N, entero que indica el largo de la lista
+//Salida:	-Puntero a puntero de float para la representacion de una matriz con memoria reservada
+float * readNumbers(char * name, int N){
+	float a;
+	int i;
+	float * listaSalida = createList(N);
+
+	FILE *ptr;
+	ptr = fopen(name,"rb");
+
+	for (i = 0; i < N; i++)
+	{
+		float a;
+		fread(&a,sizeof(float),1,ptr);
+		listaSalida[i] = a;
+	}
+
+	fclose(ptr);
+	return listaSalida;
+}
+
+
 int main(int argc, char **argv)
 {	
 	char* i;
@@ -20,6 +55,7 @@ int main(int argc, char **argv)
 	int N = 0;
 	int d = 0;
 	int c1;
+	float * lista; 
 
 	while((c1 =  getopt(argc, argv,"i:o:N:d:")) != -1){
 		switch(c1){
@@ -73,8 +109,11 @@ int main(int argc, char **argv)
 	printf("Largo de la lista: %i\n", N);
 	printf("Valor debug: %i\n", d);
 
+	// Lectura de archivos
+	lista = readNumbers(i,N);
+
 	if (d == 1)
-	{
+	{	
 		//Imprimir secuencia final
 	}
 
