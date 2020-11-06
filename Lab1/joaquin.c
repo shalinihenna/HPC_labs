@@ -25,7 +25,7 @@ float * createList(int N){
 }
 
 //Funcion que lee una lista de numeros
-//Entrada:	-cadena de char que almacena el nombre de la imagen a leer
+//Entrada:	-cadena de char que almacena el nombre del archivo a leer
 //			-N, entero que indica el largo de la lista
 //Salida:	-Puntero a puntero de float para la representacion de una matriz con memoria reservada
 float * readNumbers(char * name, int N){
