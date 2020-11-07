@@ -1,6 +1,6 @@
 //
-//  Autor: Joaquín Ignacio Jara Marín
-//  Rut: 19.739.353-k
+//  Autor: Joaquín Ignacio Jara Marín - Shalini Ramchandani Henna Murgimal
+//  Rut: 19.739.353-k - 19.307.417-0
 //  Curso: HPC
 //  Profesor: Fernando Rannou
 //
@@ -61,8 +61,19 @@ float * readNumbers(char * name, int N){
     return listaSalida;
 }
 
-
-int s[16] = {12, 21, 4, 13, 9, 8, 6, 7, 1, 14, 3, 0, 5, 11, 15, 10};
+//
+//Entrada:  -Cadena de char que contiene el nombre del archivo de salida
+//          -puntero de float que representa la lista ordenada de numeros
+//          -N, entero que indica la cantidad total de elementos
+void writeNumbers(char * name, float * lista, int N){
+    FILE * ptr = fopen(name, "w+");
+    int x;
+    for (x= 0; x < N; x++)
+    {
+        fwrite(&lista[x], sizeof(float), 1, ptr);
+    }
+    fclose(ptr);
+}
 
 void printRegister(__m128 r1){
     float R1[4] __attribute__((aligned(16)));
@@ -199,20 +210,14 @@ void mergeSIMD(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
 void orderInRegister(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
 
     //Sorting network
-    sortingNetwork(r1, r2, r3, r4);
-    //printf("Matriz Cargada en registros:\n");
-    //printRegisters(*r1,*r2,*r3,*r4);   
+    sortingNetwork(r1, r2, r3, r4); 
 
     //Transpose
     transpose(r1, r2, r3, r4);
-    //printf("Matriz traspuesta:\n");
-    //printRegisters(*r1,*r2,*r3,*r4);
 
     //Bitonic Merge Network (BMN)
     bmn(r1, r2);
     bmn(r3, r4);
-    //printf("BMN\n");
-    //printRegisters(*r1,*r2,*r3,*r4);
 }
 
 
@@ -277,6 +282,22 @@ void MWMS(float ** matriz, float * listaFinal, int N){
     
 }
 
+void SelectionSort(float *array, int n) {
+  int x, y, min;
+  float tmp;
+  for(x = 0; x < n; x++) {
+    min = x;
+    for(y = x + 1; y < n; y++) {
+      if(array[min] > array[y]) {
+        min = y;
+      }
+    }
+    tmp = array[min];
+    array[min] = array[x];
+    array[x] = tmp;
+  }
+}
+
 int main(int argc, char **argv)
 {   
     char* i;
@@ -332,17 +353,12 @@ int main(int argc, char **argv)
         }
     }
     
-    printf("Nombre archivo entrada: %s\n", i);
-    printf("Nombre archivo salida: %s\n", o);
-    printf("Largo de la lista: %i\n", N);
-    printf("Valor debug: %i\n", d);
-
     int cantListas = N/16;
     float ** matrizListas = createMatriz(cantListas);
 
     
     // Lectura de archivos
-    float * lista;        
+    float * lista;   
     lista = readNumbers(i,N);
 
     //Etapa SIMD
@@ -363,7 +379,6 @@ int main(int argc, char **argv)
 
         orderInRegister(&r1, &r2, &r3, &r4);
         mergeSIMD(&r1, &r2, &r3, &r4);
-        printRegisters(r1, r2, r3, r4);
 
         _mm_store_ps(R1,r1);
         _mm_store_ps(R2,r2);
@@ -372,20 +387,9 @@ int main(int argc, char **argv)
         
         storeList(matrizListas[j/16], R1, R2, R3, R4);
         j = j + 16;
-
     }
         
     //Ordenamiento
-    
-    for (int m = 0; m < cantListas; m++)
-    {
-        for (int n = 0; n < 16; n++)
-        {
-            printf("%f | ", matrizListas[m][n]);
-        }
-        printf("\n");
-    }
-
     MWMS(matrizListas, lista, N);
 
     if (d == 1)
@@ -393,15 +397,11 @@ int main(int argc, char **argv)
         //Imprimir secuencia final
         int k;
         for (k = 0; k < N; k++)
-        {   
-            if (k%16 == 0)printf("\n");
-            printf("%f | ", lista[k]);
+        {  
+            printf("%f\n", lista[k]);
         }
     }
-    printf("\n");
     //Escribir archivo de salida
-
-    
-
+    writeNumbers(o, lista, N);
     return 0;
 }
