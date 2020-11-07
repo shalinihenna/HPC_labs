@@ -23,6 +23,21 @@ float * createList(int N){
     return lista;
 }
 
+//Funcion que crea y asigna memoria ...
+//Entrada:  -N
+//Salida:   -Puntero a puntero de float para la representacion de una matriz con memoria reservada
+float ** createMatriz(int N){
+    int i;
+    float ** matrix = (float**)malloc(sizeof(float*) * N);
+
+    for (i = 0; i < N; i++)
+    {
+        matrix[i] = (float*)malloc(sizeof(float) * 16);
+    }
+
+    return matrix;
+}
+
 //Funcion que lee una lista de numeros
 //Entrada:  -cadena de char que almacena el nombre del archivo a leer
 //          -N, entero que indica el largo de la lista
@@ -151,35 +166,74 @@ void bmn(__m128* r1, __m128* r2){
     *r2 = _mm_shuffle_ps(r2Aux,r2Aux,_MM_SHUFFLE(3,1,2,0));
 }
 
-void orderInRegister(){
+void mergeSIMD(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
 
-    //Loading Registers
-    __m128 r1,r2,r3,r4;
-    float R1[4] __attribute__((aligned(16))) = {s[0],s[1],s[2],s[3]};
-    float R2[4] __attribute__((aligned(16))) = {s[4],s[5],s[6],s[7]};
-    float R3[4] __attribute__((aligned(16))) = {s[8],s[9],s[10],s[11]};
-    float R4[4] __attribute__((aligned(16))) = {s[12],s[13],s[14],s[15]};
 
-    r1 = _mm_load_ps(R1);
-    r2 = _mm_load_ps(R2);
-    r3 = _mm_load_ps(R3);
-    r4 = _mm_load_ps(R4);
+    __m128 min, max, o1, o2;
+
+    bmn(r1,r3);
+
+    min = _mm_min_ps(*r2, *r4);
+    max = _mm_max_ps(*r2, *r4);
+
+    o1 = _mm_shuffle_ps(min, max,_MM_SHUFFLE(1,0,1,0));
+    o2 = _mm_shuffle_ps(min, max,_MM_SHUFFLE(3,2,3,2));
+
+    bmn(r3,&o1);
+    bmn(&o1,&o2);
+
+    *r2 = *r3;
+    *r3 = o1;
+    *r4 = o2;
+}
+
+
+void orderInRegister(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
 
     //Sorting network
-    sortingNetwork(&r1,&r2,&r3,&r4);
-    printf("Matriz Cargada en registros:\n");
-    printRegisters(r1,r2,r3,r4);   
+    sortingNetwork(r1, r2, r3, r4);
+    //printf("Matriz Cargada en registros:\n");
+    //printRegisters(*r1,*r2,*r3,*r4);   
 
     //Transpose
-    transpose(&r1,&r2,&r3,&r4);
-    printf("Matriz traspuesta:\n");
-    printRegisters(r1,r2,r3,r4);
+    transpose(r1, r2, r3, r4);
+    //printf("Matriz traspuesta:\n");
+    //printRegisters(*r1,*r2,*r3,*r4);
 
     //Bitonic Merge Network (BMN)
-    bmn(&r1,&r2);
-    bmn(&r3,&r4);
-    printf("BMN\n");
-    printRegisters(r1,r2,r3,r4);
+    bmn(r1, r2);
+    bmn(r3, r4);
+    //printf("BMN\n");
+    //printRegisters(*r1,*r2,*r3,*r4);
+}
+
+
+void storeList(float * list, int j, float * R1, float * R2, float * R3, float * R4){
+    int i;
+
+    for (i = 0; i < 4; i++)
+    {   
+       list[i+j] = R1[i];
+    }
+    for (i = 0; i < 4; i++)
+    {
+       list[i+j+4] = R2[i];
+    }
+    
+    for (i = 0; i < 4; i++)
+    {   
+
+       list[i+j+8] = R3[i];
+    }
+
+    for (i = 0; i < 4; i++)
+    {
+       list[i+j+12] = R4[i];
+    }
+}
+
+void MWMS(float ** matriz, float * listaFinal){
+
 }
 
 int main(int argc, char **argv)
@@ -242,20 +296,59 @@ int main(int argc, char **argv)
     printf("Largo de la lista: %i\n", N);
     printf("Valor debug: %i\n", d);
 
-    float * lista; 
     int cantListas = N/16;
+    float ** matrizListas = createMatriz(cantListas);
+
     
     // Lectura de archivos
+    float * lista;        
     lista = readNumbers(i,N);
+
+    //Etapa SIMD
+    int j = 0;
+    while(j < N){
+        //Loading Registers
+        __m128 r1,r2,r3,r4;
+        float R1[4] __attribute__((aligned(16))) = {lista[j], lista[j+1], lista[j+2], lista[j+3]};
+        float R2[4] __attribute__((aligned(16))) = {lista[j+4], lista[j+5], lista[j+6], lista[j+7]};
+        float R3[4] __attribute__((aligned(16))) = {lista[j+8], lista[j+9], lista[j+10],lista[j+11]};
+        float R4[4] __attribute__((aligned(16))) = {lista[j+12],lista[j+13],lista[j+14],lista[j+15]};
+
+        r1 = _mm_load_ps(R1);
+        r2 = _mm_load_ps(R2);
+        r3 = _mm_load_ps(R3);
+        r4 = _mm_load_ps(R4);
+
+        orderInRegister(&r1, &r2, &r3, &r4);
+        mergeSIMD(&r1, &r2, &r3, &r4);
+        printRegisters(r1, r2, r3, r4);
+
+        _mm_store_ps(R1,r1);
+        _mm_store_ps(R2,r2);
+        _mm_store_ps(R3,r3);
+        _mm_store_ps(R4,r4);
+        
+        storeList(matrizListas[j/16], j, R1, R2, R3, R4);
+        j = j + 16;
+    }
+        
+    //Ordenamiento
+    MWMS(matrizListas, lista);
 
     if (d == 1)
     {   
+        int k;
         //Imprimir secuencia final
+        for (k = 0; k < N; k++)
+        {   
+            //if (k%16 == 0)printf("-------------\n");
+            //printf("%f\n", lista[k]);
+        }
     }
 
     //Escribir archivo de salida
 
-    orderInRegister();
+    
 
     return 0;
 }
