@@ -23,9 +23,9 @@ float * createList(int N){
     return lista;
 }
 
-//Funcion que crea y asigna memoria ...
-//Entrada:  -N
-//Salida:   -Puntero a puntero de float para la representacion de una matriz con memoria reservada
+//Funcion que crea y asigna memoria a una lista de listas de largo 16
+//Entrada:  -N, Entero que indica la cantidad de listas
+//Salida:   -Puntero a puntero de float para la representacion de una lista de listas con memoria reservada
 float ** createMatriz(int N){
     int i;
     float ** matrix = (float**)malloc(sizeof(float*) * N);
@@ -38,10 +38,10 @@ float ** createMatriz(int N){
     return matrix;
 }
 
-//Funcion que lee una lista de numeros
-//Entrada:  -cadena de char que almacena el nombre del archivo a leer
-//          -N, entero que indica el largo de la lista
-//Salida:   -Puntero a puntero de float para la representacion de una matriz con memoria reservada
+//Funcion que lee de un archivo una lista de numeros flotantes
+//Entrada:  -Cadena de char que indica el nombre del archivo a leer
+//          -N, Entero que indica el largo de la lista
+//Salida:   -Puntero de float para la representacion de una lista con memoria reservada
 float * readNumbers(char * name, int N){
     float a;
     int i;
@@ -61,10 +61,10 @@ float * readNumbers(char * name, int N){
     return listaSalida;
 }
 
-//
+//Funcion que escribe una lista de flotantes de largo N, en un archivo
 //Entrada:  -Cadena de char que contiene el nombre del archivo de salida
-//          -puntero de float que representa la lista ordenada de numeros
-//          -N, entero que indica la cantidad total de elementos
+//          -Puntero de float que representa la lista ordenada de numeros
+//          -N, Entero que indica el total de elementos de la lista
 void writeNumbers(char * name, float * lista, int N){
     FILE * ptr = fopen(name, "w+");
     int x;
@@ -75,12 +75,19 @@ void writeNumbers(char * name, float * lista, int N){
     fclose(ptr);
 }
 
+//Funcion que imprime los 4 valores de un registro SIMD
+//Entrada:  -r1, Registro SIMD con 4 valores flotantes
 void printRegister(__m128 r1){
     float R1[4] __attribute__((aligned(16)));
     _mm_store_ps(R1,r1);
     printf("%f %f %f %f\n",R1[0],R1[1],R1[2],R1[3]);
 }
 
+//Funcion que imprime los 16 valores de 4 registros SIMD ordenadamente
+//Entrada:  -r1, Registro SIMD con 4 valores flotantes
+//          -r2, Registro SIMD con 4 valores flotantes
+//          -r3, Registro SIMD con 4 valores flotantes
+//          -r4, Registro SIMD con 4 valores flotantes
 void printRegisters(__m128 r1, __m128 r2, __m128 r3, __m128 r4){
     printRegister(r1);
     printRegister(r2);
@@ -89,6 +96,11 @@ void printRegisters(__m128 r1, __m128 r2, __m128 r3, __m128 r4){
     printf("\n");
 }
 
+//Funcion que implementa logica del algoritmo de ordenamiento Sorting Network
+//Entrada:  -r1, Referencia registro SIMD con 4 valores flotantes
+//          -r2, Referencia registro SIMD con 4 valores flotantes
+//          -r3, Referencia registro SIMD con 4 valores flotantes
+//          -r4, Referencia registro SIMD con 4 valores flotantes
 void sortingNetwork(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
     __m128 r13min, r13max, r24min, r24max, r12min, r12max, r34min, r34max, r23min, r23max;
     r13min = _mm_min_ps(*r1,*r3);
@@ -107,6 +119,12 @@ void sortingNetwork(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
     *r3 = _mm_max_ps(r12max,r34min); //r23max 
 }
 
+//Funcion que transpone los valores de los registros SIMD de entrada, donde cada
+//  registro representa una fila, y las mismas posiciones de cada registro las columnas
+//Entrada:  -r1, Referencia registro SIMD con 4 valores flotantes
+//          -r2, Referencia registro SIMD con 4 valores flotantes
+//          -r3, Referencia registro SIMD con 4 valores flotantes
+//          -r4, Referencia registro SIMD con 4 valores flotantes
 void transpose(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
     __m128 rAux, r1Mid, r2Mid, r3Mid, r4Mid;
 
@@ -137,6 +155,9 @@ void transpose(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
     *r4 = _mm_shuffle_ps(rAux,rAux,_MM_SHUFFLE(3,1,2,0));
 }
 
+//Funcion que implementa la logica del algoritmo bitonic merge network
+//Entrada:  -r1, Referencia registro SIMD con 4 valores flotantes ordenados ascendentemente
+//          -r2, Referencia registro SIMD con 4 valores flotantes ordenados ascendentemente
 void bmn(__m128* r1, __m128* r2){
     __m128 r1Aux, r2Aux;
 
@@ -177,6 +198,11 @@ void bmn(__m128* r1, __m128* r2){
     *r2 = _mm_shuffle_ps(r2Aux,r2Aux,_MM_SHUFFLE(3,1,2,0));
 }
 
+//Funcion que implementa la logica del algoritmo Merge SIMD de secuencias
+//Entrada:  -r1, Referencia registro SIMD con 4 valores flotantes ordenados ascendentemente
+//          -r2, Referencia registro SIMD con 4 valores flotantes ordenados ascendentemente
+//          -r3, Referencia registro SIMD con 4 valores flotantes ordenados ascendentemente
+//          -r4, Referencia registro SIMD con 4 valores flotantes ordenados ascendentemente
 void mergeSIMD(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
 
     float aux2[4] __attribute__((aligned(16)));
@@ -206,7 +232,11 @@ void mergeSIMD(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
     *r4 = o2;
 }
 
-
+//Funcion que implementa la logica del algoritmo de ordenamiento in-register, para obtener secuencias ordenadas
+//Entrada:  -r1, Referencia registro SIMD con 4 valores flotantes
+//          -r2, Referencia registro SIMD con 4 valores flotantes
+//          -r3, Referencia registro SIMD con 4 valores flotantes
+//          -r4, Referencia registro SIMD con 4 valores flotantes
 void orderInRegister(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
 
     //Sorting network
@@ -220,7 +250,12 @@ void orderInRegister(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
     bmn(r3, r4);
 }
 
-
+//Funcion que añade los 16 elementos (R1, R2, R3, R4) en una lista
+//Entrada:  -list, Puntero de float en representación de una lista de largo 16
+//          -r1, Referencia registro SIMD con 4 valores flotantes
+//          -r2, Referencia registro SIMD con 4 valores flotantes          
+//          -r3, Referencia registro SIMD con 4 valores flotantes
+//          -r4, Referencia registro SIMD con 4 valores flotantes
 void storeList(float * list, float * R1, float * R2, float * R3, float * R4){
     int i;
     for (i = 0; i < 4; i++)
@@ -245,6 +280,10 @@ void storeList(float * list, float * R1, float * R2, float * R3, float * R4){
 
 }
 
+//Funcion que implementa la logica del algoritmo de ordenamiento Multiway Merge Sort(MWMS)
+//Entrada:  -matriz, Puntero a puntero de float en representación de una lista con listas de largo 16
+//          -listaFinal, Puntero a float en representacion de una lista de flotantes
+//          -N, Entero que indica la cantidad de elementos de la listaFinal
 void MWMS(float ** matriz, float * listaFinal, int N){
     int contador[N];
     memset(contador, 0, sizeof contador);
@@ -282,6 +321,9 @@ void MWMS(float ** matriz, float * listaFinal, int N){
     
 }
 
+//Funcion que implementa la logica del algoritmo de ordenamiento por Selección
+//Entrada:  -array, Puntero de float en representación de una lista de floats
+//          -N, Entero que indica la cantidad de elementos de la lista "array"
 void SelectionSort(float *array, int n) {
   int x, y, min;
   float tmp;
@@ -298,6 +340,20 @@ void SelectionSort(float *array, int n) {
   }
 }
 
+//Funcion que libera la memoria dinamica asignada en el programa
+//Entrada:  -lista, Puntero de float en representación de una lista de floats
+//          -matrizListas, Puntero a puntero de float en representación de una lista de listas
+//          -cantListas, Entero que indica la cantidad de listas alamcenadas en "matrizListas"
+void freeMemory(float * lista, float ** matrizListas, int cantListas){
+    free(lista);
+    int i;
+    for (i = 0; i < cantListas; i++)
+    {
+        free(matrizListas[i]);
+    }
+    free(matrizListas);
+}
+
 int main(int argc, char **argv)
 {   
     char* i;
@@ -310,7 +366,7 @@ int main(int argc, char **argv)
         switch(c1){
             case 'i':
                 if(strcmp(optarg, "") == 0){
-                    printf("Debe ingresar un nombre del archivo binario con la lista de entrada");
+                    printf("Debe ingresar un nombre del archivo binario con los valores de entrada");
                     c1 = -1;
                     break;
                 }
@@ -403,5 +459,9 @@ int main(int argc, char **argv)
     }
     //Escribir archivo de salida
     writeNumbers(o, lista, N);
+
+    //liberacion de memoria
+    freeMemory(lista, matrizListas, cantListas);
+
     return 0;
 }
