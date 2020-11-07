@@ -1,5 +1,5 @@
 //
-//  Autor: Joaquín Ignacio Jara Marín - Shalini Ramchandani Henna Murgimal
+//  Autor: Joaquín Ignacio Jara Marín - Shalini Ramchandani Henna Moorjimal
 //  Rut: 19.739.353-k - 19.307.417-0
 //  Curso: HPC
 //  Profesor: Fernando Rannou
