@@ -168,18 +168,26 @@ void bmn(__m128* r1, __m128* r2){
 
 void mergeSIMD(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
 
+    float aux2[4] __attribute__((aligned(16)));
+    float aux4[4] __attribute__((aligned(16)));
 
-    __m128 min, max, o1, o2;
+    __m128 o1, o2;
 
     bmn(r1,r3);
 
-    min = _mm_min_ps(*r2, *r4);
-    max = _mm_max_ps(*r2, *r4);
+    _mm_store_ps(aux2,*r2);
+    _mm_store_ps(aux4,*r4);
 
-    o1 = _mm_shuffle_ps(min, max,_MM_SHUFFLE(1,0,1,0));
-    o2 = _mm_shuffle_ps(min, max,_MM_SHUFFLE(3,2,3,2));
+    if(aux2[0] < aux4[0]){
+        o1 = *r2;
+        o2 = *r4;
+    }else{
+        o1 = *r4;
+        o2 = *r2;
+    }
 
     bmn(r3,&o1);
+
     bmn(&o1,&o2);
 
     *r2 = *r3;
@@ -208,32 +216,65 @@ void orderInRegister(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
 }
 
 
-void storeList(float * list, int j, float * R1, float * R2, float * R3, float * R4){
+void storeList(float * list, float * R1, float * R2, float * R3, float * R4){
     int i;
-
     for (i = 0; i < 4; i++)
     {   
-       list[i+j] = R1[i];
+       list[i] = R1[i];
     }
     for (i = 0; i < 4; i++)
     {
-       list[i+j+4] = R2[i];
+       list[i+4] = R2[i];
     }
     
     for (i = 0; i < 4; i++)
     {   
 
-       list[i+j+8] = R3[i];
+       list[i+8] = R3[i];
     }
 
     for (i = 0; i < 4; i++)
     {
-       list[i+j+12] = R4[i];
+       list[i+12] = R4[i];
     }
+
 }
 
-void MWMS(float ** matriz, float * listaFinal){
+void MWMS(float ** matriz, float * listaFinal, int N){
+    int contador[N];
+    memset(contador, 0, sizeof contador);
 
+    int i;
+    for (i = 0; i < N; i++)
+    {    
+
+        int posMin;
+        int flag = 1;
+        int j = 0;
+        while(flag == 1){   
+            if(contador[j] < 16){
+                posMin=j;
+                flag = 0;
+            }
+            j++;
+        }
+
+        float min = matriz[posMin][contador[posMin]];
+
+        int m;
+        for(m = posMin+1; m < N/16; m++){
+            if(contador[m] < 16){
+                if(min > matriz[m][contador[m]]){
+                    min = matriz[m][contador[m]];
+                    posMin = m;
+                }
+            }
+        }
+
+        listaFinal[i] = min;
+        contador[posMin]++;
+    }
+    
 }
 
 int main(int argc, char **argv)
@@ -307,6 +348,7 @@ int main(int argc, char **argv)
     //Etapa SIMD
     int j = 0;
     while(j < N){
+
         //Loading Registers
         __m128 r1,r2,r3,r4;
         float R1[4] __attribute__((aligned(16))) = {lista[j], lista[j+1], lista[j+2], lista[j+3]};
@@ -328,24 +370,35 @@ int main(int argc, char **argv)
         _mm_store_ps(R3,r3);
         _mm_store_ps(R4,r4);
         
-        storeList(matrizListas[j/16], j, R1, R2, R3, R4);
+        storeList(matrizListas[j/16], R1, R2, R3, R4);
         j = j + 16;
+
     }
         
     //Ordenamiento
-    MWMS(matrizListas, lista);
+    
+    for (int m = 0; m < cantListas; m++)
+    {
+        for (int n = 0; n < 16; n++)
+        {
+            printf("%f | ", matrizListas[m][n]);
+        }
+        printf("\n");
+    }
+
+    MWMS(matrizListas, lista, N);
 
     if (d == 1)
     {   
-        int k;
         //Imprimir secuencia final
+        int k;
         for (k = 0; k < N; k++)
         {   
-            //if (k%16 == 0)printf("-------------\n");
-            //printf("%f\n", lista[k]);
+            if (k%16 == 0)printf("\n");
+            printf("%f | ", lista[k]);
         }
     }
-
+    printf("\n");
     //Escribir archivo de salida
 
     
