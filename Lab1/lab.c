@@ -112,18 +112,18 @@ void transpose(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
 }
 
 void bmn(__m128* r1, __m128* r2){
-    __m128 r1Aux, r2Aux, r1Aux1, r2Aux2;
-    
+    __m128 r1Aux, r2Aux;
+
     *r2 = _mm_shuffle_ps(*r2,*r2,_MM_SHUFFLE(0,1,2,3)); //Se invierte
 
-    //Primera etapa
+    //-----------Primera etapa-----------
     r1Aux = _mm_shuffle_ps(*r1,*r1,_MM_SHUFFLE(3,1,2,0));
     r2Aux = _mm_shuffle_ps(*r2,*r2,_MM_SHUFFLE(3,1,2,0));
 
     *r1 = _mm_min_ps(r1Aux, r2Aux);
     *r2 = _mm_max_ps(r1Aux, r2Aux);
 
-    //Segunda etapa
+    //-----------Segunda etapa-----------
     r1Aux = _mm_shuffle_ps(*r1,*r2,_MM_SHUFFLE(2,0,2,0));
     r2Aux = _mm_shuffle_ps(*r1,*r2,_MM_SHUFFLE(3,1,3,1));
 
@@ -133,7 +133,7 @@ void bmn(__m128* r1, __m128* r2){
     *r1 = _mm_min_ps(r1Aux, r2Aux);
     *r2 = _mm_max_ps(r1Aux, r2Aux);
 
-    //Tercera etapa
+    //-----------Tercera etapa-----------
     r1Aux = _mm_shuffle_ps(*r1,*r2,_MM_SHUFFLE(1,0,1,0));
     r2Aux = _mm_shuffle_ps(*r1,*r2,_MM_SHUFFLE(3,2,3,2));
 
@@ -142,6 +142,13 @@ void bmn(__m128* r1, __m128* r2){
 
     *r1 = _mm_min_ps(r1Aux, r2Aux);
     *r2 = _mm_max_ps(r1Aux, r2Aux);
+
+    //-----------Ordenamiento----------
+    r1Aux = _mm_shuffle_ps(*r1,*r2,_MM_SHUFFLE(1,0,1,0));
+    r2Aux = _mm_shuffle_ps(*r1,*r2,_MM_SHUFFLE(3,2,3,2));
+
+    *r1 = _mm_shuffle_ps(r1Aux,r1Aux,_MM_SHUFFLE(3,1,2,0));
+    *r2 = _mm_shuffle_ps(r2Aux,r2Aux,_MM_SHUFFLE(3,1,2,0));
 }
 
 void orderInRegister(){
