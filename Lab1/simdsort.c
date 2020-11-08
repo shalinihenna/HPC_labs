@@ -79,7 +79,7 @@ int main(int argc, char **argv)
     float * lista;   
     float * listaDos;
     lista = readNumbers(i,N);
-    listaDos = lista;
+    listaDos = readNumbers(i,N);
 
     //Etapa SIMD
     double time_spent = 0.0;
@@ -114,19 +114,20 @@ int main(int argc, char **argv)
     //Ordenamiento
     MWMS(matrizListas, lista, N);
     clock_t end = clock(); //Termina el tiempo
+    time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
 
     if (d == 1)
     {   
+        printf("\n\nMerge SIMD:\n");
         //Imprimir secuencia final
         int k;
         for (k = 0; k < N; k++)
         {  
-            printf("%f\n", lista[k]);
+            printf("%f, ", lista[k]);
         }
+        printf("\n");
+        printf("\nTiempo de ejecucion simdsort: %f seg.\n",time_spent);
     }
-
-    time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
-    printf("\nTiempo de ejecucion: %f seg.\n",time_spent);
 
     //Escribir archivo de salida
     writeNumbers(o, lista, N);
@@ -135,8 +136,12 @@ int main(int argc, char **argv)
     freeMemory(lista, matrizListas, cantListas);
 
     //Algoritmo de ordenamiento secuencial: Selection Sort.
-    /*SelectionSort(listaDos,N);
-   
+    double time_spent2 = 0.0;
+    clock_t begin2 = clock(); //Empieza el tiempo
+    SelectionSort(listaDos,N);
+    clock_t end2 = clock(); //Termina el tiempo
+    time_spent2 += (double)(end2-begin2)/CLOCKS_PER_SEC;
+
     if (d == 1)
     {    
         printf("\n\nSelection Sort:\n");
@@ -147,7 +152,8 @@ int main(int argc, char **argv)
             printf("%f, ", listaDos[k]);
         }
         printf("\n");
-    }*/
-
+        printf("\nTiempo de ejecucion selection sort: %f seg.\n",time_spent2);
+    }
+    
     return 0;
 }
