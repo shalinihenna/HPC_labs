@@ -77,9 +77,7 @@ int main(int argc, char **argv)
     
     // Lectura de archivos
     float * lista;   
-    float * listaDos;
     lista = readNumbers(i,N);
-    listaDos = readNumbers(i,N);
 
     //Etapa SIMD
     double time_spent = 0.0;
@@ -118,15 +116,12 @@ int main(int argc, char **argv)
 
     if (d == 1)
     {   
-        printf("\n\nMerge SIMD:\n");
         //Imprimir secuencia final
         int k;
         for (k = 0; k < N; k++)
         {  
-            printf("%f, ", lista[k]);
+            printf("%f\n", lista[k]);
         }
-        printf("\n");
-        printf("\nTiempo de ejecucion simdsort: %f seg.\n",time_spent);
     }
 
     //Escribir archivo de salida
@@ -134,26 +129,6 @@ int main(int argc, char **argv)
 
     //liberacion de memoria
     freeMemory(lista, matrizListas, cantListas);
-
-    //Algoritmo de ordenamiento secuencial: Selection Sort.
-    double time_spent2 = 0.0;
-    clock_t begin2 = clock(); //Empieza el tiempo
-    SelectionSort(listaDos,N);
-    clock_t end2 = clock(); //Termina el tiempo
-    time_spent2 += (double)(end2-begin2)/CLOCKS_PER_SEC;
-
-    if (d == 1)
-    {    
-        printf("\n\nSelection Sort:\n");
-        //Imprimir secuencia final
-        int k;
-        for (k = 0; k < N; k++)
-        {  
-            printf("%f, ", listaDos[k]);
-        }
-        printf("\n");
-        printf("\nTiempo de ejecucion selection sort: %f seg.\n",time_spent2);
-    }
     
     return 0;
 }
