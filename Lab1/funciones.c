@@ -14,11 +14,12 @@
 #include <unistd.h>
 #include <time.h> 
 
+#include "funciones.h"
+
 //Funcion que crea y asigna memoria una lista de float de tamaño N
 //Entrada:  -N, entero que indica el largo de la lista a crear
 //Salida:   -Puntero de float para la representacion de la lista
 float * createList(int N){
-    int i;
     float * lista = (float*)malloc(sizeof(float) * N);
     return lista;
 }
@@ -43,7 +44,6 @@ float ** createMatriz(int N){
 //          -N, Entero que indica el largo de la lista
 //Salida:   -Puntero de float para la representacion de una lista con memoria reservada
 float * readNumbers(char * name, int N){
-    float a;
     int i;
     float * listaSalida = createList(N);
 
@@ -102,7 +102,7 @@ void printRegisters(__m128 r1, __m128 r2, __m128 r3, __m128 r4){
 //          -r3, Referencia registro SIMD con 4 valores flotantes
 //          -r4, Referencia registro SIMD con 4 valores flotantes
 void sortingNetwork(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
-    __m128 r13min, r13max, r24min, r24max, r12min, r12max, r34min, r34max, r23min, r23max;
+    __m128 r13min, r13max, r24min, r24max, r12max, r34min;
     r13min = _mm_min_ps(*r1,*r3);
     r13max = _mm_max_ps(*r1,*r3);
 
@@ -352,116 +352,4 @@ void freeMemory(float * lista, float ** matrizListas, int cantListas){
         free(matrizListas[i]);
     }
     free(matrizListas);
-}
-
-int main(int argc, char **argv)
-{   
-    char* i;
-    char* o;
-    int N = 0;
-    int d = 0;
-    int c1;
-
-    while((c1 =  getopt(argc, argv,"i:o:N:d:")) != -1){
-        switch(c1){
-            case 'i':
-                if(strcmp(optarg, "") == 0){
-                    printf("Debe ingresar un nombre del archivo binario con los valores de entrada");
-                    c1 = -1;
-                    break;
-                }
-                else i = optarg;
-                break;
-            case 'o':
-                if(strcmp(optarg, "") == 0){
-                    printf("Debe ingresar un nombre para el archivo binario de salida");
-                    c1 = -1;
-                    break;
-                }
-                else o = optarg;
-                break;
-            case 'N':
-                if(atof(optarg) < 1){
-                    printf("El valor ingresado debe ser mayor que 0");
-                    c1 = -1;    
-                    break;
-                }
-                else N = atof(optarg);
-                break;
-            case 'd':
-                if(atof(optarg) != 0 && atof(optarg) != 1){
-                    printf("El valor de debug debe ser 0 o 1");
-                    c1 = -1;    
-                    break;
-                }
-                else d = atof(optarg);
-                break;  
-            case '?':
-                if(optopt == 'i' || optopt == 'o' || optopt == 'N' || optopt == 'd')
-                    fprintf(stderr, "Option -%c requeries an argument.\n",optopt);
-                else if(isprint(optopt))
-                    fprintf(stderr,"Unknown option -%c.\n",optopt);
-                else
-                    fprintf(stderr, "Unknown option character `\\x%x'.\n",optopt);
-                return 1;
-            default:
-                abort();
-        }
-    }
-    
-    int cantListas = N/16;
-    float ** matrizListas = createMatriz(cantListas);
-
-    
-    // Lectura de archivos
-    float * lista;   
-    lista = readNumbers(i,N);
-
-    //Etapa SIMD
-    int j = 0;
-    while(j < N){
-
-        //Loading Registers
-        __m128 r1,r2,r3,r4;
-        float R1[4] __attribute__((aligned(16))) = {lista[j], lista[j+1], lista[j+2], lista[j+3]};
-        float R2[4] __attribute__((aligned(16))) = {lista[j+4], lista[j+5], lista[j+6], lista[j+7]};
-        float R3[4] __attribute__((aligned(16))) = {lista[j+8], lista[j+9], lista[j+10],lista[j+11]};
-        float R4[4] __attribute__((aligned(16))) = {lista[j+12],lista[j+13],lista[j+14],lista[j+15]};
-
-        r1 = _mm_load_ps(R1);
-        r2 = _mm_load_ps(R2);
-        r3 = _mm_load_ps(R3);
-        r4 = _mm_load_ps(R4);
-
-        orderInRegister(&r1, &r2, &r3, &r4);
-        mergeSIMD(&r1, &r2, &r3, &r4);
-
-        _mm_store_ps(R1,r1);
-        _mm_store_ps(R2,r2);
-        _mm_store_ps(R3,r3);
-        _mm_store_ps(R4,r4);
-        
-        storeList(matrizListas[j/16], R1, R2, R3, R4);
-        j = j + 16;
-    }
-        
-    //Ordenamiento
-    MWMS(matrizListas, lista, N);
-
-    if (d == 1)
-    {   
-        //Imprimir secuencia final
-        int k;
-        for (k = 0; k < N; k++)
-        {  
-            printf("%f\n", lista[k]);
-        }
-    }
-    //Escribir archivo de salida
-    writeNumbers(o, lista, N);
-
-    //liberacion de memoria
-    freeMemory(lista, matrizListas, cantListas);
-
-    return 0;
 }
