@@ -77,9 +77,13 @@ int main(int argc, char **argv)
     
     // Lectura de archivos
     float * lista;   
+    float * listaDos;
     lista = readNumbers(i,N);
+    listaDos = lista;
 
     //Etapa SIMD
+    double time_spent = 0.0;
+    clock_t begin = clock(); //Empieza el tiempo
     int j = 0;
     while(j < N){
 
@@ -109,6 +113,7 @@ int main(int argc, char **argv)
         
     //Ordenamiento
     MWMS(matrizListas, lista, N);
+    clock_t end = clock(); //Termina el tiempo
 
     if (d == 1)
     {   
@@ -119,11 +124,30 @@ int main(int argc, char **argv)
             printf("%f\n", lista[k]);
         }
     }
+
+    time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
+    printf("\nTiempo de ejecucion: %f seg.\n",time_spent);
+
     //Escribir archivo de salida
     writeNumbers(o, lista, N);
 
     //liberacion de memoria
     freeMemory(lista, matrizListas, cantListas);
+
+    //Algoritmo de ordenamiento secuencial: Selection Sort.
+    /*SelectionSort(listaDos,N);
+   
+    if (d == 1)
+    {    
+        printf("\n\nSelection Sort:\n");
+        //Imprimir secuencia final
+        int k;
+        for (k = 0; k < N; k++)
+        {  
+            printf("%f, ", listaDos[k]);
+        }
+        printf("\n");
+    }*/
 
     return 0;
 }
