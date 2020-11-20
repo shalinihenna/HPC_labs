@@ -76,7 +76,7 @@ int main(int argc, char **argv)
                     c1 = -1;    
                     break;
                 }
-                else l = atof(optarg);
+                else h = atof(optarg);
                 break;  
             case '?':
                 if(optopt == 'i' || optopt == 'o' || optopt == 'N' || optopt == 'd' || optopt == 'l' || optopt == 'h')
