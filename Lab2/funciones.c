@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <time.h> 
+#include <omp.h>
 
 #include "funciones.h"
 
@@ -338,18 +339,4 @@ void SelectionSort(float *array, int n) {
     array[min] = array[x];
     array[x] = tmp;
   }
-}
-
-//Funcion que libera la memoria dinamica asignada en el programa
-//Entrada:  -lista, Puntero de float en representación de una lista de floats
-//          -matrizListas, Puntero a puntero de float en representación de una lista de listas
-//          -cantListas, Entero que indica la cantidad de listas alamcenadas en "matrizListas"
-void freeMemory(float * lista, float ** matrizListas, int cantListas){
-    free(lista);
-    int i;
-    for (i = 0; i < cantListas; i++)
-    {
-        free(matrizListas[i]);
-    }
-    free(matrizListas);
 }

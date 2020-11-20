@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <time.h> 
+#include <omp.h>
 
 #include "funciones.h"
 
@@ -23,13 +24,15 @@ int main(int argc, char **argv)
     char* o;
     int N = 0;
     int d = 0;
+    int l = 0;
+    int h = 0;
     int c1;
 
-    while((c1 =  getopt(argc, argv,"i:o:N:d:")) != -1){
+    while((c1 =  getopt(argc, argv,"i:o:N:d:l:h:")) != -1){
         switch(c1){
             case 'i':
                 if(strcmp(optarg, "") == 0){
-                    printf("Debe ingresar un nombre del archivo binario con los valores de entrada");
+                    printf("Debe ingresar un nombre del archivo binario con los valores de entrada\n");
                     c1 = -1;
                     break;
                 }
@@ -37,7 +40,7 @@ int main(int argc, char **argv)
                 break;
             case 'o':
                 if(strcmp(optarg, "") == 0){
-                    printf("Debe ingresar un nombre para el archivo binario de salida");
+                    printf("Debe ingresar un nombre para el archivo binario de salida\n");
                     c1 = -1;
                     break;
                 }
@@ -45,7 +48,7 @@ int main(int argc, char **argv)
                 break;
             case 'N':
                 if(atof(optarg) < 1){
-                    printf("El valor ingresado debe ser mayor que 0");
+                    printf("El valor ingresado debe ser mayor que 0\n");
                     c1 = -1;    
                     break;
                 }
@@ -59,8 +62,24 @@ int main(int argc, char **argv)
                 }
                 else d = atof(optarg);
                 break;  
+            case 'l':
+                if(atof(optarg) < 0 ){
+                    printf("El valor de los niveles de recursividad debe ser mayor o igual que 0\n");
+                    c1 = -1;    
+                    break;
+                }
+                else l = atof(optarg);
+                break;
+            case 'h':
+                if(atof(optarg) < 1 ){
+                    printf("El valor de hebras debe ser mayor o igual que 1\n");
+                    c1 = -1;    
+                    break;
+                }
+                else l = atof(optarg);
+                break;  
             case '?':
-                if(optopt == 'i' || optopt == 'o' || optopt == 'N' || optopt == 'd')
+                if(optopt == 'i' || optopt == 'o' || optopt == 'N' || optopt == 'd' || optopt == 'l' || optopt == 'h')
                     fprintf(stderr, "Option -%c requeries an argument.\n",optopt);
                 else if(isprint(optopt))
                     fprintf(stderr,"Unknown option -%c.\n",optopt);
@@ -71,16 +90,19 @@ int main(int argc, char **argv)
                 abort();
         }
     }
-    int cantListas = N/16;
-    float ** matrizListas = createMatriz(cantListas);
-
     
     // Lectura de archivos
-    float * lista;   
-    lista = readNumbers(i,N);
+    //float * lista;   
+    //lista = readNumbers(i,N);
 
+    printf("i: %s\n", i);
+    printf("o: %s\n", o);
+    printf("N: %i\n", N);
+    printf("d: %i\n", d);
+    printf("l: %i\n", l);
+    printf("h: %i\n", h);
     //Etapa SIMD
-    double time_spent = 0.0;
+    /* double time_spent = 0.0;
     clock_t begin = clock(); //Empieza el tiempo
     int j = 0;
     while(j < N){
@@ -126,9 +148,7 @@ int main(int argc, char **argv)
 
     //Escribir archivo de salida
     writeNumbers(o, lista, N);
-
-    //liberacion de memoria
-    freeMemory(lista, matrizListas, cantListas);
+ */
     
     return 0;
 }
