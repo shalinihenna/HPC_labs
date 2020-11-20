@@ -340,3 +340,12 @@ void SelectionSort(float *array, int n) {
     array[x] = tmp;
   }
 }
+
+//Funcion que 
+//Entrada:  -array, Puntero de float en representación de una lista de floats
+//          -
+void divideYOrdenaras(float *array, int largo, int nivel) {
+    printf("Numero de hebra = %d\n", omp_get_thread_num());
+    
+
+}

@@ -92,8 +92,8 @@ int main(int argc, char **argv)
     }
     
     // Lectura de archivos
-    //float * lista;   
-    //lista = readNumbers(i,N);
+    float * lista;   
+    lista = readNumbers(i,N);
 
     printf("i: %s\n", i);
     printf("o: %s\n", o);
@@ -101,6 +101,13 @@ int main(int argc, char **argv)
     printf("d: %i\n", d);
     printf("l: %i\n", l);
     printf("h: %i\n", h);
+
+    omp_set_num_threads(h);
+    #pragma omp parallel
+    #pragma omp single nowait
+    divideYOrdenaras(lista, N, l);
+
+    
     //Etapa SIMD
     /* double time_spent = 0.0;
     clock_t begin = clock(); //Empieza el tiempo
