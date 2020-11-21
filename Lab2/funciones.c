@@ -340,3 +340,72 @@ void SelectionSort(float *array, int n) {
     array[x] = tmp;
   }
 }
+
+
+float ** SIMD_sort(float *array, int cantListas){
+    float ** matrizListas = createMatriz(cantListas);
+
+    __m128 r1,r2,r3,r4;
+
+    for (int i = 0; i < cantListas; i++)
+    {
+        r1 = _mm_load_ps(array + (i*16));
+        r2 = _mm_load_ps(array + (i*16) + 4);
+        r3 = _mm_load_ps(array + (i*16) + 8);
+        r4 = _mm_load_ps(array + (i*16) + 12);
+
+        orderInRegister(&r1, &r2, &r3, &r4);
+        mergeSIMD(&r1, &r2, &r3, &r4);
+
+        float R1[4] __attribute__((aligned(16)));
+        float R2[4] __attribute__((aligned(16)));
+        float R3[4] __attribute__((aligned(16)));
+        float R4[4] __attribute__((aligned(16)));
+
+        _mm_store_ps(R1,r1);
+        _mm_store_ps(R2,r2);
+        _mm_store_ps(R3,r3);
+        _mm_store_ps(R4,r4);
+        storeList(matrizListas[i], R1, R2, R3, R4);
+    }
+    
+    return matrizListas;
+}
+
+//Funcion que 
+//Entrada:  -array, Puntero de float en representación de una lista de floats
+//          -
+void divideYOrdenaras(float *array, int largo, int nivel) {
+    if(nivel == 0){
+
+        int cantListas = largo/16;
+
+        SIMD_sort(array, cantListas);
+        
+        /* for (int i = 0; i < largo; i++)
+        {
+            printf("%f-hebra%d \n", array[i], omp_get_thread_num());
+        }
+        printf("\n"); */
+
+        return;
+    }
+    else{
+        
+        int nuevoLargo = largo/2;
+
+        #pragma omp task untied
+        {   
+            divideYOrdenaras(array, nuevoLargo, nivel-1);
+        }
+
+        #pragma omp task untied
+        {
+            divideYOrdenaras(array + nuevoLargo, nuevoLargo, nivel-1);
+        }
+
+        #pragma omp taskwait
+        //merge()
+    }
+
+}
