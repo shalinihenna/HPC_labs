@@ -14,8 +14,20 @@
 #include <unistd.h>
 #include <time.h> 
 #include <omp.h>
+#include <math.h>
 
 #include "funciones.h"
+
+struct Heap
+{
+    int lengthArray;
+    float *array;
+    int *idArray;               //arreglo de id a la lista que pertenece
+    int *counterPosition;       //contador del elemento de la lista a la que pertenece
+    int lastPosition;           //última posición con elemento
+    
+};
+
 
 //Funcion que crea y asigna memoria una lista de float de tamaño N
 //Entrada:  -N, entero que indica el largo de la lista a crear
@@ -279,67 +291,7 @@ void storeList(float * list, float * R1, float * R2, float * R3, float * R4){
        list[i+12] = R4[i];
     }
 
-}
-
-//Funcion que implementa la logica del algoritmo de ordenamiento Multiway Merge Sort(MWMS)
-//Entrada:  -matriz, Puntero a puntero de float en representación de una lista con listas de largo 16
-//          -listaFinal, Puntero a float en representacion de una lista de flotantes
-//          -N, Entero que indica la cantidad de elementos de la listaFinal
-void MWMS(float ** matriz, float * listaFinal, int N){
-    int contador[N];
-    memset(contador, 0, sizeof contador);
-
-    int i;
-    for (i = 0; i < N; i++)
-    {    
-
-        int posMin;
-        int flag = 1;
-        int j = 0;
-        while(flag == 1){   
-            if(contador[j] < 16){
-                posMin=j;
-                flag = 0;
-            }
-            j++;
-        }
-
-        float min = matriz[posMin][contador[posMin]];
-
-        int m;
-        for(m = posMin+1; m < N/16; m++){
-            if(contador[m] < 16){
-                if(min > matriz[m][contador[m]]){
-                    min = matriz[m][contador[m]];
-                    posMin = m;
-                }
-            }
-        }
-
-        listaFinal[i] = min;
-        contador[posMin]++;
-    }
-    
-}
-
-//Funcion que implementa la logica del algoritmo de ordenamiento por Selección
-//Entrada:  -array, Puntero de float en representación de una lista de floats
-//          -N, Entero que indica la cantidad de elementos de la lista "array"
-void SelectionSort(float *array, int n) {
-  int x, y, min;
-  float tmp;
-  for(x = 0; x < n; x++) {
-    min = x;
-    for(y = x + 1; y < n; y++) {
-      if(array[min] > array[y]) {
-        min = y;
-      }
-    }
-    tmp = array[min];
-    array[min] = array[x];
-    array[x] = tmp;
-  }
-}
+} 
 
 
 float ** SIMD_sort(float *array, int cantListas){
@@ -372,6 +324,143 @@ float ** SIMD_sort(float *array, int cantListas){
     return matrizListas;
 }
 
+void insertHeap(float value, int indexList, struct Heap *heap)
+{
+    int sonIndex, fatherIndex;
+    float auxValue;
+
+    //Se inserta el elemento al final del heap
+    heap->lastPosition = heap->lastPosition + 1;
+    sonIndex = heap->lastPosition;
+    heap->array[sonIndex] = value;
+
+    //Se reordena el heap
+    fatherIndex = (int)((round(sonIndex / 2.0)) - 1);
+
+    while ((heap->array[sonIndex] < heap->array[fatherIndex]) && sonIndex > 0)
+    {
+        auxValue = heap->array[fatherIndex];
+        heap->array[fatherIndex] = heap->array[sonIndex];
+        heap->array[sonIndex] = auxValue;
+
+        sonIndex = fatherIndex;
+        fatherIndex = (int)((round(sonIndex / 2.0)) - 1);
+    }
+
+    heap->idArray[sonIndex] = indexList;
+    heap->counterPosition[indexList]++;
+}
+
+void deleteHeap(struct Heap *heap){
+    int fatherIndex, firstSonIndex, secondSonIndex;
+
+    heap->array[0] = heap->array[heap->lastPosition];
+    heap->array[heap->lastPosition] = -1;
+    heap->lastPosition = heap->lastPosition - 1;
+
+    fatherIndex = 0;
+    firstSonIndex = 2 * fatherIndex + 1;
+    secondSonIndex = 2 * fatherIndex + 2;
+    
+    while((firstSonIndex <= heap->lastPosition || secondSonIndex <= heap->lastPosition) && (heap->array[fatherIndex] > heap->array[firstSonIndex] || heap->array[fatherIndex] > heap->array[secondSonIndex])){
+       if(firstSonIndex <= heap->lastPosition && secondSonIndex > heap->lastPosition){
+            if(heap->array[fatherIndex] > heap->array[firstSonIndex]){
+                swap(heap, &fatherIndex, firstSonIndex);
+            }else{
+                break;
+            }
+        }else if(secondSonIndex <= heap->lastPosition){
+            if(heap->array[fatherIndex] > heap->array[firstSonIndex] && heap->array[fatherIndex] > heap->array[secondSonIndex]){
+                if(heap->array[firstSonIndex] <= heap->array[secondSonIndex]){
+                    swap(heap, &fatherIndex, firstSonIndex);
+                }else{
+                    swap(heap, &fatherIndex, secondSonIndex);
+                }        
+            }else if(heap->array[fatherIndex] > heap->array[firstSonIndex] && heap->array[fatherIndex] < heap->array[secondSonIndex]){
+                swap(heap, &fatherIndex, firstSonIndex);
+            }else if(heap->array[fatherIndex] < heap->array[firstSonIndex] && heap->array[fatherIndex] > heap->array[secondSonIndex]){
+                swap(heap, &fatherIndex, secondSonIndex);
+            }else{
+                break;
+            }
+        }
+        firstSonIndex = 2 * fatherIndex + 1;
+        secondSonIndex = 2 * fatherIndex + 2;
+    }
+    
+}
+
+void assignFirstElement(struct Heap *heap, float *finalList, int *lengthFinalList)
+{
+    finalList[*lengthFinalList] = heap->array[0];
+    *lengthFinalList++;
+    deleteHeap(heap);
+
+    /*for (int i = 0; i < lengthFinalList; i++)
+    {
+        if (finalList[i] == -1)
+        {
+            finalList[i] = heap->array[0];
+            deleteHeap(heap);
+            i = lengthFinalList;
+        }
+    }*/
+}
+
+void multiWaySort(float **listasOrdernadas, int cantidadListas)
+{   
+    struct Heap heap;
+    heap.array = createList(cantidadListas);
+    heap.idArray = (int*)malloc(sizeof(int) * cantidadListas);
+    heap.lengthArray = cantidadListas;
+    heap.lastPosition = -1;
+    //int *contadores = (int*) malloc (sizeof(int*) * cantidadListas);
+    heap.counterPosition = (int*) malloc (sizeof(int) * cantidadListas);
+    memset(heap.counterPosition, 0, sizeof(int) * cantidadListas);
+
+    float* finalList = createList(cantidadListas*16); 
+    int lengthList = 0;
+
+    printf("counter positions\n");
+    for (int k = 0; k < cantidadListas; k++)
+    {
+        printf("%d - ", heap.counterPosition[k]);
+    }
+    printf("\n");
+
+    //Inserción del primer elemento de cada lista
+    for(int i = 0; i < cantidadListas; i++){
+        insertHeap(listasOrdernadas[i][0], i, &heap);
+    }
+
+    //Remover el primer elemento del heap
+
+
+    printf("HEAP\n");
+    for (int k = 0; k < cantidadListas; k++)
+    {
+        printf("%f - ", heap.array[k]);
+    }
+    printf("\n");
+
+    printf("INDEX\n");
+    for (int k = 0; k < cantidadListas; k++)
+    {
+        printf("%d - ", heap.idArray[k]);
+    }
+    printf("\n");
+
+    printf("counter positions2\n");
+    for (int k = 0; k < cantidadListas; k++)
+    {
+        printf("%d - ", heap.counterPosition[k]);
+    }
+    printf("\n");
+
+    
+
+}
+
 //Funcion que 
 //Entrada:  -array, Puntero de float en representación de una lista de floats
 //          -
@@ -386,6 +475,7 @@ void divideYOrdenaras(float *array, int largo, int nivel) {
         int cantListas = largo/16;
 
         float ** listasOrdenadas = SIMD_sort(array, cantListas);
+
         
 
         for (int j = 0; j < cantListas; j++)
@@ -396,6 +486,8 @@ void divideYOrdenaras(float *array, int largo, int nivel) {
             }
             printf("\n");
         }
+
+        multiWaySort(listasOrdenadas, cantListas);
 
         return;
     }

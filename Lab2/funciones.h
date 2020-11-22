@@ -29,8 +29,6 @@ void bmn(__m128* r1, __m128* r2);
 void mergeSIMD(__m128* r1, __m128* r2, __m128* r3, __m128* r4);
 void orderInRegister(__m128* r1, __m128* r2, __m128* r3, __m128* r4);
 void storeList(float * list, float * R1, float * R2, float * R3, float * R4);
-void MWMS(float ** matriz, float * listaFinal, int N);
-void SelectionSort(float *array, int n);
 void divideYOrdenaras(float *array, int largo, int nivel);
 float ** SIMD_sort(float *array, int cantListas);
 

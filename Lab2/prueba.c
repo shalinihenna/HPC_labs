@@ -4,9 +4,11 @@
 
 struct Heap
 {
-    float array[16];
-    int lastPosition; //última posición con elemento
     int lengthArray;
+    float *array;
+    int *indexArray;
+    int lastPosition; //última posición con elemento
+    
 };
 
 float arregloBacan[2][16] = {{12, 21, 4, 13, 9, 8, 6, 7, 1, 14, 3, 0, 5, 11, 15, 10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}};
@@ -49,18 +51,14 @@ void deleteHeap(struct Heap *heap){
     int fatherIndex, firstSonIndex, secondSonIndex;
 
     heap->array[0] = heap->array[heap->lastPosition];
-    heap->array[heap->lastPosition] = 0;
+    heap->array[heap->lastPosition] = -1;
     heap->lastPosition = heap->lastPosition - 1;
 
     fatherIndex = 0;
     firstSonIndex = 2 * fatherIndex + 1;
     secondSonIndex = 2 * fatherIndex + 2;
     
-    while((heap->array[fatherIndex] > heap->array[firstSonIndex] || heap->array[fatherIndex] > heap->array[secondSonIndex]) && (firstSonIndex <= heap->lastPosition || secondSonIndex <= heap->lastPosition)){
-       /*printf("father %d, value: %f \n", fatherIndex, heap->array[fatherIndex]); 
-       printf("son1 %d, value: %f\n", firstSonIndex, heap->array[firstSonIndex]);
-       printf("son2 %d, value: %f\n", secondSonIndex, heap->array[secondSonIndex]);
-       printf("last position: %d\n\n", heap->lastPosition);*/
+    while((firstSonIndex <= heap->lastPosition || secondSonIndex <= heap->lastPosition) && (heap->array[fatherIndex] > heap->array[firstSonIndex] || heap->array[fatherIndex] > heap->array[secondSonIndex])){
        if(firstSonIndex <= heap->lastPosition && secondSonIndex > heap->lastPosition){
             if(heap->array[fatherIndex] > heap->array[firstSonIndex]){
                 swap(heap, &fatherIndex, firstSonIndex);
@@ -71,7 +69,7 @@ void deleteHeap(struct Heap *heap){
             if(heap->array[fatherIndex] > heap->array[firstSonIndex] && heap->array[fatherIndex] > heap->array[secondSonIndex]){
                 if(heap->array[firstSonIndex] <= heap->array[secondSonIndex]){
                     swap(heap, &fatherIndex, firstSonIndex);
-                }else if(heap->array[firstSonIndex] > heap->array[secondSonIndex]){
+                }else{
                     swap(heap, &fatherIndex, secondSonIndex);
                 }        
             }else if(heap->array[fatherIndex] > heap->array[firstSonIndex] && heap->array[fatherIndex] < heap->array[secondSonIndex]){
@@ -104,10 +102,11 @@ void assignFirstElement(struct Heap *heap, float *finalList, int lengthFinalList
 void main()
 {
     struct Heap heap;
+    heap.array = (float*)malloc(sizeof(float) * 16); //TO DO 16 corregir cantidadListas
     heap.lengthArray = 16;
     heap.lastPosition = -1;
 
-    float finalList[16];
+    float finalList[16]; //TO DO cantidad de listas*16
     for (int i = 0; i < 16; i++)
     {
         finalList[i] = -1;
