@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <time.h> 
 #include <omp.h>
-
+#include <time.h> 
 #include "funciones.h"
 
 
@@ -94,13 +94,19 @@ int main(int argc, char **argv)
     // Lectura de archivos
     float * lista;   
     lista = readNumbers(i,N);
+    
+    double time_spent = 0.0;
+    clock_t begin = clock(); //Empieza el tiempo
 
     omp_set_num_threads(h);
     #pragma omp parallel
     #pragma omp single nowait
     divideYOrdenaras(lista, N, l);
-    
-    #pragma omp critical
+
+    clock_t end = clock(); //Termina el tiempo
+    time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
+
+    //#pragma omp critical
     if(d == 1){
         for (int i = 0; i < N; i++)
         {
@@ -109,6 +115,10 @@ int main(int argc, char **argv)
         printf("\n");
     }
     writeNumbers(o, lista, N);
-    
+    printf("\nTiempo de ejecucion: %f seg.\n",time_spent);
     return 0;
 }
+
+
+
+

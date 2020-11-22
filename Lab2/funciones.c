@@ -1,5 +1,5 @@
 //
-//  Autor: Joaquín Ignacio Jara Marín - Shalini Ramchandani Henna Moorjimal
+//  Autor: Joaquín Ignacio Jara Marín - Shalini Henna Ramchandani Moorjimal
 //  Rut: 19.739.353-k - 19.307.417-0
 //  Curso: HPC
 //  Profesor: Fernando Rannou
@@ -15,6 +15,7 @@
 #include <time.h> 
 #include <omp.h>
 #include <math.h>
+#include <time.h> 
 
 #include "funciones.h"
 
