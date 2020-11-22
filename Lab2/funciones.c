@@ -377,6 +377,11 @@ float ** SIMD_sort(float *array, int cantListas){
 //          -
 void divideYOrdenaras(float *array, int largo, int nivel) {
     if(nivel == 0){
+        
+        if(largo < 16){
+            printf("El nivel de recursividad ingresado genera listas inferiores a 16\nCancelando ejecución\n");
+            exit(1);
+        }
 
         int cantListas = largo/16;
 
