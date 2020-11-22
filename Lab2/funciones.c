@@ -368,7 +368,7 @@ float ** SIMD_sort(float *array, int cantListas){
         _mm_store_ps(R4,r4);
         storeList(matrizListas[i], R1, R2, R3, R4);
     }
-    
+
     return matrizListas;
 }
 
@@ -380,13 +380,17 @@ void divideYOrdenaras(float *array, int largo, int nivel) {
 
         int cantListas = largo/16;
 
-        SIMD_sort(array, cantListas);
+        float ** listasOrdenadas = SIMD_sort(array, cantListas);
         
-        /* for (int i = 0; i < largo; i++)
+
+        for (int j = 0; j < cantListas; j++)
         {
-            printf("%f-hebra%d \n", array[i], omp_get_thread_num());
+            for (int i = 0; i < 16; i++)
+            {   
+                printf("%f - Lista %d - hebra %d \n", listasOrdenadas[j][i], j, omp_get_thread_num());
+            }
+            printf("\n");
         }
-        printf("\n"); */
 
         return;
     }
