@@ -107,5 +107,12 @@ int main(int argc, char **argv)
     #pragma omp single nowait
     divideYOrdenaras(lista, N, l);
     
+    #pragma omp critical
+    printf("Lista final final\n");
+    for (int i = 0; i < N; i++)
+    {
+        printf("%f\n",lista[i]);
+    }
+    printf("\n");
     return 0;
 }

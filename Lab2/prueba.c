@@ -143,3 +143,134 @@ void main()
     printf("\n");
 
 }
+
+
+//merge con prints
+float * merge(float* arrayIzquierdo, float* arrayDerecho, int length){
+    for (int i = 0; i < length; i++)
+    {   
+        printf("%f|%d\n", arrayIzquierdo[i], omp_get_thread_num());
+    }
+    
+    printf("--------\n");
+
+    for (int i = 0; i < length; i++)
+    {
+        printf("%f|%d\n", arrayDerecho[i], omp_get_thread_num());
+    }
+
+    float * mergeList = createList(length * 2);
+
+    int izq = 0;
+    int der = 0;
+
+    while(izq + der < length *2){
+        if(arrayIzquierdo[izq] < arrayDerecho[der] && izq < length){
+            mergeList[izq+der] = arrayIzquierdo[izq];
+            izq++;
+        }else{
+            mergeList[izq+der] = arrayDerecho[der];
+            der++;
+        }
+    }
+    return mergeList;
+}
+
+
+//Multiwaysort con traza
+float* multiWaySort2(struct Element ** listasOrdernadas, int cantidadListas)
+{   
+    struct Heap heap;
+    heap.array = createList(cantidadListas);
+    heap.elements = (struct Element*) malloc (sizeof(struct Element) * cantidadListas);
+
+    heap.lengthArray = cantidadListas;
+    heap.lastPosition = -1;
+    heap.counterPosition = (int*) malloc (sizeof(int) * cantidadListas);
+    memset(heap.counterPosition, 0, sizeof(int) * cantidadListas);
+
+    float* finalList = createList(cantidadListas*16); 
+    int lengthList = 0;
+
+    int indexList;
+
+
+    //Inserción del primer elemento de cada lista
+    for(int i = 0; i < cantidadListas; i++){
+        insertHeap(listasOrdernadas[i][0], &heap);
+    }
+
+    printf("counter positions\n");
+    for (int k = 0; k < cantidadListas; k++)
+    {
+        printf("%d - ", heap.counterPosition[k]);
+    }
+    printf("\n");
+
+
+    printf("Heap inicial\n");
+    for (int k = 0; k < cantidadListas; k++)
+    {
+        printf("%f - ", heap.elements[k].value);
+    }
+    printf("\n\n");
+
+
+
+    for (int j = 0; j < cantidadListas*16; j++)
+    {   
+
+        //Remover el primer elemento del heap y se añade a la lista final
+        indexList = assignFirstElement(&heap, finalList, &lengthList);
+        
+       /* printf("Heap resultante de remover elemento de la lista %d\n", indexList);
+        for (int k = 0; k < cantidadListas; k++)
+        {
+            printf("%f|%d - ", heap.elements[k].value, heap.elements[k].index);
+        }
+        printf("\n");
+
+        printf("counter positions2\n");
+        for (int k = 0; k < cantidadListas; k++)
+        {
+            printf("%d - ", heap.counterPosition[k]);
+        }
+        printf("\n");
+        printf("finalList\n");
+        for (int k = 0; k < lengthList; k++)
+        {
+            printf("%f - ", finalList[k]);
+        }
+        printf("\n");*/
+
+        if(heap.counterPosition[indexList] < 16){
+            insertHeap(listasOrdernadas[indexList][heap.counterPosition[indexList]], &heap);
+        }/*
+        getchar();
+        printf("Heap de insertar elemento de la lista %d\n", indexList);
+        for (int k = 0; k < cantidadListas; k++)
+        {
+            printf("%f|%d - ", heap.elements[k].value, heap.elements[k].index);
+        }
+        printf("\n");
+        getchar();*/
+    }
+
+
+    printf("counter positions2\n");
+    for (int k = 0; k < cantidadListas; k++)
+    {
+        printf("%d - ", heap.counterPosition[k]);
+    }
+    printf("\n");
+
+    printf("finalList\n");
+    for (int k = 0; k < lengthList; k++)
+    {
+        printf("%f\n", finalList[k]);
+    }
+    printf("\n");
+    
+    return finalList;
+
+}
