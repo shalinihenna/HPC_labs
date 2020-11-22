@@ -95,24 +95,20 @@ int main(int argc, char **argv)
     float * lista;   
     lista = readNumbers(i,N);
 
-    printf("i: %s\n", i);
-    printf("o: %s\n", o);
-    printf("N: %i\n", N);
-    printf("d: %i\n", d);
-    printf("l: %i\n", l);
-    printf("h: %i\n", h);
-
     omp_set_num_threads(h);
     #pragma omp parallel
     #pragma omp single nowait
     divideYOrdenaras(lista, N, l);
     
     #pragma omp critical
-    printf("Lista final final\n");
-    for (int i = 0; i < N; i++)
-    {
-        printf("%f\n",lista[i]);
+    if(d == 1){
+        for (int i = 0; i < N; i++)
+        {
+            printf("%f\n",lista[i]);
+        }
+        printf("\n");
     }
-    printf("\n");
+    writeNumbers(o, lista, N);
+    
     return 0;
 }

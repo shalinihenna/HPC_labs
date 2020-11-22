@@ -458,34 +458,35 @@ float* multiWaySort(struct Element ** listasOrdernadas, int cantidadListas)
 void merge(float* array, int length){
 
     float * listAux = createList(length);
-    for (int i = 0; i < length/2; i++)
-    {   
-        printf("%f|%d\n", array[i], omp_get_thread_num());
-        listAux[i] = array[i];
-    }
-    
-    printf("--------\n");
 
-    for (int i = length/2; i < length; i++)
-    {
-        printf("%f|%d\n", array[i], omp_get_thread_num());
+    for (int i = 0; i < length; i++)
+    {   
         listAux[i] = array[i];
     }
-    printf("\n");
 
     int izq = 0;
     int der = 0;
 
-    while(izq + der < length){
-        if(listAux[izq] <= listAux[der+length/2]){
-            array[izq+der] = listAux[izq];
+
+    for (int i = 0; i < length; i++)
+    {
+        if(izq < length/2 && der < length/2){
+            if(listAux[izq] <= listAux[der+(length/2)]){
+                array[i] = listAux[izq];
+                izq++;
+            }
+            else{
+                array[i] = listAux[der+(length/2)];
+                der++;
+            }
+        }else if(izq < length/2){
+            array[i] = listAux[izq];
             izq++;
         }else{
-            array[izq+der] = listAux[der];
+            array[i] = listAux[der+(length/2)];
             der++;
         }
     }
-
     return;
 }
 
@@ -503,16 +504,6 @@ void divideYOrdenaras(float *array, int largo, int nivel) {
         int cantListas = largo/16;
 
         struct Element ** listasOrdenadas = SIMD_sort(array, cantListas);
-
-
-        for (int j = 0; j < cantListas; j++)
-        {
-            for (int i = 0; i < 16; i++)
-            {   
-                printf("%f - Lista %d - hebra %d \n", listasOrdenadas[j][i].value, j, omp_get_thread_num());
-            }
-            printf("\n");
-        }
 
         float* aux = multiWaySort(listasOrdenadas, cantListas);
 
