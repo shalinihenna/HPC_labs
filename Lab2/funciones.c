@@ -27,7 +27,9 @@ float * createList(int N){
     return lista;
 }
 
-
+//Funcion que crea y asigna memoria una lista de listas de estructura Element de tamaño N
+//Entrada:  -N, entero que indica el largo de la lista a crear
+//Salida:   -Doble Puntero de estructura Element para representación de una lista de lista de Element
 struct Element ** createStructList(int N){
     int i;
     struct Element ** matrix = (struct Element**)malloc(sizeof(struct Element*) * N);
@@ -251,8 +253,9 @@ void orderInRegister(__m128* r1, __m128* r2, __m128* r3, __m128* r4){
     bmn(r3, r4);
 }
 
-//Funcion que añade los 16 elementos (R1, R2, R3, R4) en una lista
-//Entrada:  -list, Puntero de float en representación de una lista de largo 16
+//Funcion que añade los 16 elementos (R1, R2, R3, R4) en una lista de struct Element
+//Entrada:  -list, Puntero de struct Element en representación de una lista de largo 16
+//          -indexList, entero que representa el indice de la lista pasada por parametro
 //          -r1, Referencia registro SIMD con 4 valores flotantes
 //          -r2, Referencia registro SIMD con 4 valores flotantes          
 //          -r3, Referencia registro SIMD con 4 valores flotantes
@@ -284,7 +287,9 @@ void storeList(struct Element * list, int indexList, float * R1, float * R2, flo
 
 } 
 
-
+//Funcion que implementa la logica del ordenamiento de una lista, en sublistas de 16 elementos utilizando SIMD
+//Entrada:  -array, Arreglo de elementos floatantes de largo cantListas*16
+//          -cantListas, Entero que indica la cantidad de listas de 16 elementos que se pueden obtener del array
 struct Element ** SIMD_sort(float *array, int cantListas){
     struct Element ** matrizListas = createStructList(cantListas);
 
@@ -315,6 +320,10 @@ struct Element ** SIMD_sort(float *array, int cantListas){
     return matrizListas;
 }
 
+//Funcion que cambia el padre con un hijo en un arbol binario
+//Entrada:  -heap, Estructura heap que representa un arbol binario
+//          -fatherIndex, Indice de la posición del nodo padre
+//          -sonIndex, Indice de la posición del nodo hijo
 void swap(struct Heap *heap, int *fatherIndex, int sonIndex){
     struct Element auxValue;
     auxValue.value = heap->elements[*fatherIndex].value; 
@@ -329,6 +338,10 @@ void swap(struct Heap *heap, int *fatherIndex, int sonIndex){
     *fatherIndex = sonIndex;
 }
 
+
+//Funcion que inserta un elemento en el heap(arbol binario)
+//Entrada:  -object, Estructura Element que representa un nodo/elemento del arbol
+//          -heap, Estructura heap que representa un arbol binario
 void insertHeap(struct Element object, struct Heap *heap)
 {   
 
@@ -364,6 +377,8 @@ void insertHeap(struct Element object, struct Heap *heap)
 
 }
 
+//Funcion que elimina un elemento del heap(arbol binario) y reordena el arbol
+//Entrada: -heap, Estructura heap que representa un arbol binario
 void deleteHeap(struct Heap *heap){
     int fatherIndex, firstSonIndex, secondSonIndex;
 
@@ -408,6 +423,12 @@ void deleteHeap(struct Heap *heap){
     
 }
 
+
+//Funcion que elimina el elemento inicial del heap y lo inserta en una lista
+//Entrada:  -heap, Estructura heap que representa un arbol binario
+//          -finalList, puntero de float en representación de una lista de elementos flotantes
+//          -lengthFinalList, Puntero de entero con la referencia del valor del largo de finalList
+//Salida: -Entero que indica el indice de la lista a la que pertenecia el elemento removido
 int assignFirstElement(struct Heap *heap, float *finalList, int *lengthFinalList)
 {   
     int indexListaObjeto = heap->elements[0].index;
@@ -418,6 +439,11 @@ int assignFirstElement(struct Heap *heap, float *finalList, int *lengthFinalList
     return indexListaObjeto;
 }
 
+//Funcion que elimina el elemento inicial del heap y lo inserta en una lista
+//Entrada:  -heap, Estructura heap que representa un arbol binario
+//          -finalList, puntero de float en representación de una lista de elementos flotantes
+//          -lengthFinalList, Puntero de entero con la referencia del valor del largo de finalList
+//Salida: -puntero de float en representación de una lista de elementos flotantes ordenados ascendentemente
 float* multiWaySort(struct Element ** listasOrdernadas, int cantidadListas)
 {   
     struct Heap heap;
@@ -456,6 +482,9 @@ float* multiWaySort(struct Element ** listasOrdernadas, int cantidadListas)
 
 }
 
+//Funcion que ordena una lista que contiene dos secuencias ascendentes separadas, generando una sola secuancia ordenada de menor a mayor
+//Entrada:  -array, puntero de float en representación de una lista de elementos flotantes
+//          -length, entero que indica el largo del arreglo "array"
 void merge(float* array, int length){
 
     float * listAux = createList(length);
@@ -491,9 +520,10 @@ void merge(float* array, int length){
     return;
 }
 
-//Funcion que 
+//Funcion que divide las listas recursivamente por la mitad segun una cantidad de veces entregada por parametros y ordenada ascendentemente
 //Entrada:  -array, Puntero de float en representación de una lista de floats
-//          -
+//          -largo, Entero que indica el largo del array
+//          -nivel, entero que indica los niveles de recursión a ejecutar
 void divideYOrdenaras(float *array, int largo, int nivel) {
     if(nivel == 0){
         

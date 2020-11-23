@@ -103,9 +103,6 @@ int main(int argc, char **argv)
     #pragma omp single nowait
     divideYOrdenaras(lista, N, l);
 
-    clock_t end = clock(); //Termina el tiempo
-    time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
-
     //#pragma omp critical
     if(d == 1){
         for (int i = 0; i < N; i++)
@@ -115,7 +112,6 @@ int main(int argc, char **argv)
         printf("\n");
     }
     writeNumbers(o, lista, N);
-    printf("\nTiempo de ejecucion: %f seg.\n",time_spent);
     return 0;
 }
 
