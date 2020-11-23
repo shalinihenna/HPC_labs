@@ -94,9 +94,6 @@ int main(int argc, char **argv)
     // Lectura de archivos
     float * lista;   
     lista = readNumbers(i,N);
-    
-    double time_spent = 0.0;
-    clock_t begin = clock(); //Empieza el tiempo
 
     omp_set_num_threads(h);
     #pragma omp parallel
