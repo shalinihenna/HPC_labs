@@ -45,3 +45,10 @@ int main(void){
 
 
 }
+/* RECORRER LA MATRIZ COMO ARREGLO
+ for (int i=0; i<N; i++){
+        for (int j=0; j<N; j++){
+            h_A[i*N+j] = sin(i);
+            h_B[i*N+j] = cos(j);
+        }
+    }*/
