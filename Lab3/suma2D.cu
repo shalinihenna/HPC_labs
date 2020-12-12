@@ -16,9 +16,6 @@ __global__ void suma2D(float *A, float *B, int N, int V){
 
     for (int a = i-V; a < i+V; a++){
         for (int b = j-V; b < j+V; b++){
-            /*if(a < 0 || a > N || b < 0 || b > N){
-
-            }*/
             if(a >= 0 && a < N && b >= 0 && b < N){
                 B[i * N + j] = B[i * N + j] + A[a * N + b];
             }

@@ -8,7 +8,8 @@
 
 void randomImage(float *A, int N){
     for(int i = 0; i < N*N; i++){
-        A[i] = (float)rand()/RAND_MAX;
+        //A[i] = (float)rand()/RAND_MAX;
+        A[i] = 1;
     }
 }
 
