@@ -46,6 +46,17 @@ void suma2D_CPU(float *A, float *B, int N, int V){
     }
 }
 
+void comparar(float *A, float *B, int N){
+    int x = 0;
+    for(int i = 0; i < N*N; i++){
+        if(A[i] != B[i]){
+            printf("Son distintos en la posicion %i\n", i);
+            x = 1;
+        }
+    }
+    if(x == 0) printf("\n>>>>>>> Son iguales <<<<<<<<<< \n");
+}
+
 __host__ void randomImage(float *A, int N){
     for(int i = 0; i < N*N; i++){
         //A[i] = (float)rand()/RAND_MAX;
@@ -116,11 +127,11 @@ __host__ int main(int argc, char **argv){
     //Pedir memoria en host
     float *h_A = (float *)malloc(size*sizeof(float));
     float *h_B = (float *)malloc(size*sizeof(float));
-
+    float *h_C = (float *)malloc(size*sizeof(float));
     //Generación de imagen random
     randomImage(h_A, N);
     printf("Imagen Original:\n ");
-    //printImage(h_A, N);
+    ////printImage(h_A, N);
     printf("\n\n");
 
     //Se empieza a medir el tiempo en GPU
@@ -154,7 +165,7 @@ __host__ int main(int argc, char **argv){
 
     //Se imprime por consola la imagen nueva y el tiempo de ejecución en GPU
     printf("Imagen Resultante en GPU:\n ");
-    printImage(h_B, N);
+    //printImage(h_B, N);
     printf("Tiempo de Ejecucion GPU: %f seg.\n", elapsedTime/1000);
     printf("\n\n");
 
@@ -163,14 +174,17 @@ __host__ int main(int argc, char **argv){
     clock_t begin = clock(); 
 
     //Llamado a la función de suma en CPU
-    suma2D_CPU(h_A, h_B, N, V);
+    suma2D_CPU(h_A, h_C, N, V);
     printf("Imagen Resultante en CPU:\n ");
-    printImage(h_B, N);
+    //printImage(h_C, N);
 
     //Se termina de medir tiempo en CPU
     clock_t end = clock(); 
     time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
     printf("Tiempo de Ejecucion CPU: %f seg.\n", time_spent);
+
+
+    comparar(h_B, h_C, N);
 
     //Se libera memoria solicitada
     cudaEventDestroy(start);
