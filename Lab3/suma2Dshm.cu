@@ -18,24 +18,25 @@
 __global__ void suma2D_SHMEM(float *A, float *B, int N, int V){
     extern __shared__ float data[];
 
-    int i, j;
+    int i, j, k;
     i = blockDim.x * blockIdx.x + threadIdx.x; //horizontal
     j = blockDim.y * blockIdx.y + threadIdx.y; //vertical
-    
-    int tid = i * N + j;
+    k = i * N + j; //Global
 
-    data[tid] = 0.0;
+    int id;
+    id = threadIdx.x;
+    data[id] = 0.0;
 
     for (int a = i-V; a <= i+V; a++){
         for (int b = j-V; b <= j+V; b++){
             if(a >= 0 && a < N && b >= 0 && b < N){
-                data[i * N + j] = data[i * N + j] + A[a * N + b];
+                data[id] = data[id] + A[a * N + b];
             }
         }
     }
 
     __syncthreads();
-    B[tid] = data[tid];
+    B[k] = data[id];
 }
 
 void suma2D_CPU(float *A, float *B, int N, int V){
@@ -56,8 +57,8 @@ void suma2D_CPU(float *A, float *B, int N, int V){
 
 void randomImage(float *A, int N){
     for(int i = 0; i < N*N; i++){
-        A[i] = (float)rand()/RAND_MAX;
-        //A[i] = 1;
+        //A[i] = (float)rand()/RAND_MAX;
+        A[i] = 1;
     }
 }
 
@@ -148,9 +149,9 @@ __host__ int main(int argc, char **argv){
     cudaMemcpy(d_B, h_B, size*sizeof(float), cudaMemcpyHostToDevice);
 
     //Llamado a la función de suma en GPU
-    dim3 blockSize = dim3(N/Bs, N/Bs);
-    dim3 gridSize = dim3(Bs,Bs);
-    suma2D_SHMEM<<<gridSize, blockSize, size>>>(d_A, d_B, N, V);
+    dim3 blockSize = dim3(Bs, Bs);
+    dim3 gridSize = dim3(N/Bs,N/Bs);
+    suma2D_SHMEM<<<gridSize, blockSize, Bs>>>(d_A, d_B, N, V);
 
     //Copia desde Device a Host
     cudaMemcpy(h_B, d_B, size*sizeof(float), cudaMemcpyDeviceToHost);
@@ -164,7 +165,7 @@ __host__ int main(int argc, char **argv){
     //Se imprime por consola la imagen nueva y el tiempo de ejecución en GPU
     printf("Imagen Resultante en GPU:\n ");
     printImage(h_B, N);
-    printf("Tiempo de Ejecucion GPU: %3.lf ms.\n", elapsedTime);
+    printf("Tiempo de Ejecucion GPU: %f seg.\n", elapsedTime/1000);
     printf("\n\n");
 
     //Se empieza a medir tiempo en CPU

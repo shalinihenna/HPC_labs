@@ -48,8 +48,8 @@ void suma2D_CPU(float *A, float *B, int N, int V){
 
 __host__ void randomImage(float *A, int N){
     for(int i = 0; i < N*N; i++){
-        A[i] = (float)rand()/RAND_MAX;
-        //A[i] = 1;
+        //A[i] = (float)rand()/RAND_MAX;
+        A[i] = 1;
     }
 }
 
@@ -120,7 +120,7 @@ __host__ int main(int argc, char **argv){
     //Generación de imagen random
     randomImage(h_A, N);
     printf("Imagen Original:\n ");
-    printImage(h_A, N);
+    //printImage(h_A, N);
     printf("\n\n");
 
     //Se empieza a medir el tiempo en GPU
@@ -139,8 +139,8 @@ __host__ int main(int argc, char **argv){
     cudaMemcpy(d_B, h_B, size*sizeof(float), cudaMemcpyHostToDevice);
 
     //Llamado a la función de suma en GPU
-    dim3 blockSize = dim3(N/Bs, N/Bs);
-    dim3 gridSize = dim3(Bs,Bs);
+    dim3 blockSize = dim3(Bs, Bs);
+    dim3 gridSize = dim3(N/Bs,N/Bs);
     suma2D<<<gridSize,blockSize>>>(d_A, d_B, N, V);
     
     //Copia desde Device a Host
@@ -155,7 +155,7 @@ __host__ int main(int argc, char **argv){
     //Se imprime por consola la imagen nueva y el tiempo de ejecución en GPU
     printf("Imagen Resultante en GPU:\n ");
     printImage(h_B, N);
-    printf("Tiempo de Ejecucion GPU: %3.lf ms.\n", elapsedTime);
+    printf("Tiempo de Ejecucion GPU: %f seg.\n", elapsedTime/1000);
     printf("\n\n");
 
     //Se empieza a medir tiempo en CPU
@@ -183,9 +183,4 @@ __host__ int main(int argc, char **argv){
     exit(0);
     return 0;
 }
-
-
-/*COSAS POR HACER
-- suma2Dshme
-*/
 
