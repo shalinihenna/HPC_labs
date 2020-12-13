@@ -161,9 +161,6 @@ __host__ int main(int argc, char **argv){
 
     //Copia desde Device a Host
     cudaMemcpy(h_B, d_B, size*sizeof(float), cudaMemcpyDeviceToHost);
-<<<<<<< HEAD
-    printf("\n\nImagen sumada desde GPU con memoria compartida\n");
-=======
 
     //Se termine de medir el tiempo en GPU
     cudaEventRecord(stop,0);
@@ -173,7 +170,6 @@ __host__ int main(int argc, char **argv){
 
     //Se imprime por consola la imagen nueva y el tiempo de ejecución en GPU
     printf("Imagen Resultante en GPU:\n ");
->>>>>>> 2c8996b98c051f6ff503998835a6085ce0a1d5cc
     printImage(h_B, N);
     printf("Tiempo de Ejecucion GPU: %3.lf ms.\n", elapsedTime);
     printf("\n\n");
@@ -184,10 +180,6 @@ __host__ int main(int argc, char **argv){
 
     //Llamado a la función de suma en CPU
     suma2D_CPU(h_A, h_B, N, V);
-<<<<<<< HEAD
-    printf("\n\nImagen sumada desde CPU\n");
-    printImage(h_B, N);
-=======
     printf("Imagen Resultante en CPU:\n ");
     printImage(h_B, N);
 
@@ -204,7 +196,6 @@ __host__ int main(int argc, char **argv){
     free(h_A);
     free(h_B);
 
->>>>>>> 2c8996b98c051f6ff503998835a6085ce0a1d5cc
     exit(0);
 
 }
