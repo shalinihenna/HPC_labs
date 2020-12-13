@@ -8,7 +8,26 @@
 //Bs = tamaño de bloque
 
 __global__ void suma2D_SHMEM(float *A, float *B, int N, int V){
+    extern __shared__ float data[];
+
+    int i, j;
+    i = blockDim.x * blockIdx.x + threadIdx.x; //horizontal
+    j = blockDim.y * blockIdx.y + threadIdx.y; //vertical
     
+    int tid = i * N + j;
+
+    data[tid] = 0.0;
+
+    for (int a = i-V; a <= i+V; a++){
+        for (int b = j-V; b <= j+V; b++){
+            if(a >= 0 && a < N && b >= 0 && b < N){
+                data[i * N + j] = data[i * N + j] + A[a * N + b];
+            }
+        }
+    }
+
+    __syncthreads();
+    B[tid] = data[tid];
 }
 
 void suma2D_CPU(float *A, float *B, int N, int V){
@@ -74,10 +93,10 @@ __host__ int main(void){
     //Llamado a la función de suma en GPU
     dim3 blockSize = dim3(N/Bs, N/Bs);
     dim3 gridSize = dim3(Bs,Bs);
-    suma2D_SHMEM<<gridSize,blockSize>>(d_A, d_B, N, V);
+    suma2D_SHMEM<<<gridSize,blockSize, size>>>(d_A, d_B, N, V);
 
     //Copia desde Device a Host
-    cudaMemcpy(&h_B, d_B, size*sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_B, d_B, size*sizeof(float), cudaMemcpyDeviceToHost);
     printImage(h_B, N);
 
     //Llamado a la función de suma en CPU
