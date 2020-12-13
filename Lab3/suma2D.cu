@@ -72,6 +72,7 @@ __host__ int main(void){
 
     //Generación de imagen random
     randomImage(h_A, N);
+    printf("Imagen Original:\n ");
     printImage(h_A, N);
     printf("\n\n");
 
@@ -103,6 +104,9 @@ __host__ int main(void){
     cudaEventSynchronize(stop);
     float elapsedTime;
     cudaEventElapsedTime( &elapsedTime, start, stop);
+
+    //Se imprime por consola la imagen nueva y el tiempo de ejecución en GPU
+    printf("Imagen Resultante en GPU:\n ");
     printImage(h_B, N);
     printf("Tiempo de Ejecucion GPU: %3.lf ms.\n", elapsedTime);
     printf("\n\n");
@@ -113,6 +117,7 @@ __host__ int main(void){
 
     //Llamado a la función de suma en CPU
     suma2D_CPU(h_A, h_B, N, V);
+    printf("Imagen Resultante en CPU:\n ");
     printImage(h_B, N);
 
     //Se termina de medir tiempo en CPU
