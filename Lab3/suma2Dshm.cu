@@ -185,7 +185,6 @@ __host__ int main(int argc, char **argv){
     printf("Imagen Resultante en GPU:\n ");
     //printImage(h_B, N);
     printf("Tiempo de Ejecucion GPU: %f seg.\n", elapsedTime/1000);
-    timesGpu[count] = elapsedTime/1000;
     printf("\n\n");
 
     //Se empieza a medir tiempo en CPU
@@ -201,10 +200,9 @@ __host__ int main(int argc, char **argv){
     clock_t end = clock(); 
     time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
     printf("Tiempo de Ejecucion CPU: %f seg.\n", time_spent);
-    timesCpu[count] = time_spent;
 
-    writeNumbers("text1.txt", h_B, size);
-    writeNumbers("text2.txt", h_C, size);
+    //writeNumbers("text1.txt", h_B, size);
+    //writeNumbers("text2.txt", h_C, size);
     //comparar(h_B, h_C, N);
     //printf("%f-%f-%f\n",h_A[5], h_B[5], h_C[5]);
     //Se libera memoria solicitada
