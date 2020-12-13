@@ -15,24 +15,34 @@
 //V = nivel de vecindad
 //Bs = tamaño de bloque
 
+void writeNumbers(char * name, float * lista, int N){
+    FILE * ptr = fopen(name, "w+");
+    int x;
+    for (x= 0; x < N; x++)
+    {
+        fwrite(&lista[x], sizeof(float), 1, ptr);
+    }
+    fclose(ptr);
+}
+
 __global__ void suma2D_SHMEM(float *A, float *B, int N, int V){
-    extern __shared__ float data[];
+    __shared__ float data[1024];
     
     int i, j, k;
-    i = blockDim.x * blockIdx.x + threadIdx.x; //horizontal
+    i = blockDim.x * blockIdx.x + threadIdx.x; //horizontal -
     j = blockDim.y * blockIdx.y + threadIdx.y; //vertical
-    k = j * N + i; //Global
+    k = i * N + j; //Bloque
+    
+    data[i] = 0.0;
 
-    int id = threadIdx.x;
-    data[id] = 0.0;
     for (int a = i-V; a <= i+V; a++){
         for (int b = j-V; b <= j+V; b++){
             if(a >= 0 && a < N && b >= 0 && b < N){
-                data[id] = data[id] + A[b * N + a];
+                data[i] = data[i] + A[a * N + b];
             }
         }
     }
-    B[k] = data[id];
+    B[k] = data[i];
 }
 
 void suma2D_CPU(float *A, float *B, int N, int V){
@@ -52,8 +62,8 @@ void suma2D_CPU(float *A, float *B, int N, int V){
 
 void randomImage(float *A, int N){
     for(int i = 0; i < N*N; i++){
-        //A[i] = (float)rand()/RAND_MAX;
-        A[i] = 1;
+        A[i] = (float)rand()/RAND_MAX;
+        //A[i] = 1;
     }
 }
 
@@ -128,6 +138,7 @@ __host__ int main(int argc, char **argv){
         }
     }
 
+
     int size = N*N;
 
     //Pedir memoria en host
@@ -137,9 +148,9 @@ __host__ int main(int argc, char **argv){
 
     //Generación de imagen random
     randomImage(h_A, N);
-    printf("Imagen Original:\n ");
+    //printf("Imagen Original:\n ");
     //printImage(h_A, N);
-    printf("\n\n");
+    //printf("\n\n");
 
     //Se empieza a medir el tiempo en GPU
     cudaEvent_t start, stop;
@@ -159,7 +170,7 @@ __host__ int main(int argc, char **argv){
     //Llamado a la función de suma en GPU
     dim3 blockSize = dim3(Bs, Bs);
     dim3 gridSize = dim3(N/Bs,N/Bs);
-    suma2D_SHMEM<<<gridSize, blockSize, Bs*sizeof(float)>>>(d_A, d_B, N, V);
+    suma2D_SHMEM<<<gridSize, blockSize>>>(d_A, d_B, N, V);
 
     //Copia desde Device a Host
     cudaMemcpy(h_B, d_B, size*sizeof(float), cudaMemcpyDeviceToHost);
@@ -174,6 +185,7 @@ __host__ int main(int argc, char **argv){
     printf("Imagen Resultante en GPU:\n ");
     //printImage(h_B, N);
     printf("Tiempo de Ejecucion GPU: %f seg.\n", elapsedTime/1000);
+    timesGpu[count] = elapsedTime/1000;
     printf("\n\n");
 
     //Se empieza a medir tiempo en CPU
@@ -189,10 +201,12 @@ __host__ int main(int argc, char **argv){
     clock_t end = clock(); 
     time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
     printf("Tiempo de Ejecucion CPU: %f seg.\n", time_spent);
+    timesCpu[count] = time_spent;
 
-
-    comparar(h_B, h_C, N);
-
+    writeNumbers("text1.txt", h_B, size);
+    writeNumbers("text2.txt", h_C, size);
+    //comparar(h_B, h_C, N);
+    //printf("%f-%f-%f\n",h_A[5], h_B[5], h_C[5]);
     //Se libera memoria solicitada
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
@@ -200,7 +214,7 @@ __host__ int main(int argc, char **argv){
     cudaFree(d_B);
     free(h_A);
     free(h_B);
-
+    
     exit(0);
 
 }
