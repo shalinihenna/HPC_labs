@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+<<<<<<< HEAD
 #include <getopt.h>
 #include <ctype.h>
 #include <string.h>
 
 //Ejemplo compilacion: nvcc suma2D.cu -o suma2D
 //Ejemplo ejecucion: ./suma2D -N 5 -B 1 -V 1
+=======
+#include <time.h> 
+>>>>>>> 2c8996b98c051f6ff503998835a6085ce0a1d5cc
 
 //A = imagen original
 //B = imagen resultante
@@ -117,8 +121,19 @@ __host__ int main(int argc, char **argv){
 
     //Generación de imagen random
     randomImage(h_A, N);
+<<<<<<< HEAD
     printf("\n\nImagen original\n");
+=======
+    printf("Imagen Original:\n ");
+>>>>>>> 2c8996b98c051f6ff503998835a6085ce0a1d5cc
     printImage(h_A, N);
+    printf("\n\n");
+
+    //Se empieza a medir el tiempo en GPU
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    cudaEventRecord(start,0);
 
     //Pedir memoria en device
     float *d_A, *d_B;
@@ -128,7 +143,10 @@ __host__ int main(int argc, char **argv){
     //Copia desde Host a Device
     cudaMemcpy(d_A, h_A, size*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_B, h_B, size*sizeof(float), cudaMemcpyHostToDevice);
+<<<<<<< HEAD
     printf("\n\nImagen sumada desde GPU\n");
+=======
+>>>>>>> 2c8996b98c051f6ff503998835a6085ce0a1d5cc
 
     //Llamado a la función de suma en GPU
     dim3 blockSize = dim3(N/Bs, N/Bs);
@@ -137,12 +155,46 @@ __host__ int main(int argc, char **argv){
     
     //Copia desde Device a Host
     cudaMemcpy(h_B, d_B, size*sizeof(float), cudaMemcpyDeviceToHost);
+
+    //Se termine de medir el tiempo en GPU
+    cudaEventRecord(stop,0);
+    cudaEventSynchronize(stop);
+    float elapsedTime;
+    cudaEventElapsedTime( &elapsedTime, start, stop);
+
+    //Se imprime por consola la imagen nueva y el tiempo de ejecución en GPU
+    printf("Imagen Resultante en GPU:\n ");
     printImage(h_B, N);
+<<<<<<< HEAD
      
     printf("\n\nImagen sumada desde CPU\n");
+=======
+    printf("Tiempo de Ejecucion GPU: %3.lf ms.\n", elapsedTime);
+    printf("\n\n");
+
+    //Se empieza a medir tiempo en CPU
+    double time_spent = 0.0;
+    clock_t begin = clock(); 
+
+>>>>>>> 2c8996b98c051f6ff503998835a6085ce0a1d5cc
     //Llamado a la función de suma en CPU
     suma2D_CPU(h_A, h_B, N, V);
+    printf("Imagen Resultante en CPU:\n ");
     printImage(h_B, N);
+
+    //Se termina de medir tiempo en CPU
+    clock_t end = clock(); 
+    time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
+    printf("Tiempo de Ejecucion CPU: %f seg.\n", time_spent);
+
+    //Se libera memoria solicitada
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
+    cudaFree(d_A);
+    cudaFree(d_B);
+    free(h_A);
+    free(h_B);
+
     exit(0);
     return 0;
 }
