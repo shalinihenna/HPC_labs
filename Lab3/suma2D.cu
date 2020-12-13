@@ -121,7 +121,11 @@ __host__ int main(int argc, char **argv){
 
     //Generación de imagen random
     randomImage(h_A, N);
+<<<<<<< HEAD
+    printf("\n\nImagen original\n");
+=======
     printf("Imagen Original:\n ");
+>>>>>>> 2c8996b98c051f6ff503998835a6085ce0a1d5cc
     printImage(h_A, N);
     printf("\n\n");
 
@@ -139,6 +143,10 @@ __host__ int main(int argc, char **argv){
     //Copia desde Host a Device
     cudaMemcpy(d_A, h_A, size*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_B, h_B, size*sizeof(float), cudaMemcpyHostToDevice);
+<<<<<<< HEAD
+    printf("\n\nImagen sumada desde GPU\n");
+=======
+>>>>>>> 2c8996b98c051f6ff503998835a6085ce0a1d5cc
 
     //Llamado a la función de suma en GPU
     dim3 blockSize = dim3(N/Bs, N/Bs);
@@ -157,6 +165,10 @@ __host__ int main(int argc, char **argv){
     //Se imprime por consola la imagen nueva y el tiempo de ejecución en GPU
     printf("Imagen Resultante en GPU:\n ");
     printImage(h_B, N);
+<<<<<<< HEAD
+     
+    printf("\n\nImagen sumada desde CPU\n");
+=======
     printf("Tiempo de Ejecucion GPU: %3.lf ms.\n", elapsedTime);
     printf("\n\n");
 
@@ -164,6 +176,7 @@ __host__ int main(int argc, char **argv){
     double time_spent = 0.0;
     clock_t begin = clock(); 
 
+>>>>>>> 2c8996b98c051f6ff503998835a6085ce0a1d5cc
     //Llamado a la función de suma en CPU
     suma2D_CPU(h_A, h_B, N, V);
     printf("Imagen Resultante en CPU:\n ");
