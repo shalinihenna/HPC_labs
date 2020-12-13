@@ -128,11 +128,7 @@ __host__ int main(int argc, char **argv){
 
     //Generación de imagen random
     randomImage(h_A, N);
-<<<<<<< HEAD
-    printf("\n\nImagen original\n");
-=======
     printf("Imagen Original:\n ");
->>>>>>> 2c8996b98c051f6ff503998835a6085ce0a1d5cc
     printImage(h_A, N);
     printf("\n\n");
 
