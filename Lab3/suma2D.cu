@@ -1,15 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-<<<<<<< HEAD
 #include <getopt.h>
 #include <ctype.h>
 #include <string.h>
 
 //Ejemplo compilacion: nvcc suma2D.cu -o suma2D
 //Ejemplo ejecucion: ./suma2D -N 5 -B 1 -V 1
-=======
-#include <time.h> 
->>>>>>> 2c8996b98c051f6ff503998835a6085ce0a1d5cc
 
 //A = imagen original
 //B = imagen resultante
