@@ -1,5 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <getopt.h>
+#include <ctype.h>
+#include <string.h>
+
+//Ejemplo compilacion: nvcc suma2D.cu -o suma2D
+//Ejemplo ejecucion: ./suma2D -N 5 -B 1 -V 1
 
 //A = imagen original
 //B = imagen resultante
@@ -57,13 +63,53 @@ __host__ void printImage(float *A, int N){
     }
 }
 
-__host__ int main(void){
-    //Variables
-    //TODO: GetOpt
-    int N = 5;
+__host__ int main(int argc, char **argv){
+    
+    int N = 0;
+    int Bs = 0;
+    int V = 0;
+    int c1;
+    
+    while((c1 =  getopt(argc, argv,"N:B:V:")) != -1){
+        switch(c1){
+            case 'N':
+                if(atof(optarg) < 1){
+                    printf("El valor ingresado debe ser mayor que 0\n");
+                    c1 = -1;    
+                    break;
+                }
+                else N = atof(optarg);
+                break;
+            case 'B':
+                if(atof(optarg) < 1){
+                    printf("El valor ingresado debe ser mayor que 0\n");
+                    c1 = -1;    
+                    break;
+                }
+                else Bs = atof(optarg);
+                break;  
+            case 'V':
+                if(atof(optarg) < 1){
+                    printf("El valor ingresado debe ser mayor que 0\n");
+                    c1 = -1;    
+                    break;
+                }
+                else V = atof(optarg);
+                break;  
+            case '?':
+                if(optopt == 'N' || optopt == 'B' || optopt == 'V')
+                    fprintf(stderr, "Option -%c requeries an argument.\n",optopt);
+                else if(isprint(optopt))
+                    fprintf(stderr,"Unknown option -%c.\n",optopt);
+                else
+                    fprintf(stderr, "Unknown option character `\\x%x'.\n",optopt);
+                return 1;
+            default:
+                abort();
+        }
+    }
+
     int size = N*N;
-    int V = 1;
-    int Bs = 1;
 
     //Pedir memoria en host
     float *h_A = (float *)malloc(size*sizeof(float));
@@ -71,6 +117,7 @@ __host__ int main(void){
 
     //Generación de imagen random
     randomImage(h_A, N);
+    printf("\n\nImagen original\n");
     printImage(h_A, N);
 
     //Pedir memoria en device
@@ -81,7 +128,7 @@ __host__ int main(void){
     //Copia desde Host a Device
     cudaMemcpy(d_A, h_A, size*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_B, h_B, size*sizeof(float), cudaMemcpyHostToDevice);
-    printf("\n\n");
+    printf("\n\nImagen sumada desde GPU\n");
 
     //Llamado a la función de suma en GPU
     dim3 blockSize = dim3(N/Bs, N/Bs);
@@ -92,11 +139,12 @@ __host__ int main(void){
     cudaMemcpy(h_B, d_B, size*sizeof(float), cudaMemcpyDeviceToHost);
     printImage(h_B, N);
      
-    printf("\n\n");
+    printf("\n\nImagen sumada desde CPU\n");
     //Llamado a la función de suma en CPU
     suma2D_CPU(h_A, h_B, N, V);
     printImage(h_B, N);
     exit(0);
+    return 0;
 }
 
 

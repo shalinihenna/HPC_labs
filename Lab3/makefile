@@ -27,3 +27,6 @@ clean :
 .PHONY : build zip clean
 
 sinclude $(depends)
+
+echo "./suma2d -N tamano_imagen -B tamano_bloque -V tamano_vecindad"
+echo "./suma2dshm -N tamano_imagen -B tamano_bloque -V tamano_vecindad"
