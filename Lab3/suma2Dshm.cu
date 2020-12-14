@@ -1,3 +1,10 @@
+//
+//  Autor: Joaquín Ignacio Jara Marín - Shalini Henna Ramchandani Moorjimal
+//  Rut: 19.739.353-k - 19.307.417-0
+//  Curso: HPC
+//  Profesor: Fernando Rannou
+//
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -5,13 +12,18 @@
 #include <string.h>
 #include <time.h>
 
+//Funcion que genera una nueva imagen a partir de una vecindad indicada utilizando memoria compartida
+//Entrada:  -Puntero de float que representa la imagen original
+//          -Puntero de float que representa la imagen resultante
+//          -N, Entero que indica el largo de una matriz de NxN
+//          -V, Entero que indica el tamaño de la vecindad
 __global__ void suma2D_SHMEM(float *A, float *B, int N, int V){
     __shared__ float data[1024];
     
     int i, j, k;
-    i = blockDim.x * blockIdx.x + threadIdx.x; //horizontal -
-    j = blockDim.y * blockIdx.y + threadIdx.y; //vertical
-    k = i * N + j; //Bloque
+    i = blockDim.x * blockIdx.x + threadIdx.x;
+    j = blockDim.y * blockIdx.y + threadIdx.y;
+    k = i * N + j;
     
     data[i] = 0.0;
 
@@ -25,6 +37,11 @@ __global__ void suma2D_SHMEM(float *A, float *B, int N, int V){
     B[k] = data[i];
 }
 
+//Funcion que genera una nueva imagen a partir de una vecindad indicada en CPU
+//Entrada:  -Puntero de float que representa la imagen original
+//          -Puntero de float que representa la imagen resultante
+//          -N, Entero que indica el largo de una matriz de NxN
+//          -V, Entero que indica el tamaño de la vecindad
 void suma2D_CPU(float *A, float *B, int N, int V){
     for(int i = 0; i < N; i++){
         for(int j = 0; j < N; j++){
@@ -40,12 +57,18 @@ void suma2D_CPU(float *A, float *B, int N, int V){
     }
 }
 
+//Funcion que genera una nueva imagen aleatoria de NxN
+//Entrada:  -Puntero de float que genera una imagen con pixeles random
+//          -N, Entero que indica el largo de una imagen de NxN
 void randomImage(float *A, int N){
     for(int i = 0; i < N*N; i++){
         A[i] = (float)rand()/RAND_MAX;
     }
 }
 
+//Funcion que imprime los valores de una imagen
+//Entrada:  -Puntero de float que representa una imagen
+//          -N, Entero que indica el largo de una imagen de NxN
 void printImage(float *A, int N){
     int j = 0;
     for(int i = 0; i < N*N; i++){
@@ -54,7 +77,7 @@ void printImage(float *A, int N){
     }
 }
 
-__host__ int main(int argc, char **argv){
+int main(int argc, char **argv){
     
     int N = 0;
     int Bs = 0;
