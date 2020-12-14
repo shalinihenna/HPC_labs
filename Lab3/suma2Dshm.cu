@@ -5,26 +5,6 @@
 #include <string.h>
 #include <time.h>
 
-//Ejemplo compilacion: nvcc suma2Dshm.cu -o suma2Dshm
-//Ejemplo ejecucion: ./suma2Dshm -N 5 -B 1 -V 1
- 
-
-//A = imagen original
-//B = imagen resultante
-//N = dimensiones (NxN) Matriz Cuadrada
-//V = nivel de vecindad
-//Bs = tamaño de bloque
-
-void writeNumbers(char * name, float * lista, int N){
-    FILE * ptr = fopen(name, "w+");
-    int x;
-    for (x= 0; x < N; x++)
-    {
-        fwrite(&lista[x], sizeof(float), 1, ptr);
-    }
-    fclose(ptr);
-}
-
 __global__ void suma2D_SHMEM(float *A, float *B, int N, int V){
     __shared__ float data[1024];
     
@@ -63,33 +43,15 @@ void suma2D_CPU(float *A, float *B, int N, int V){
 void randomImage(float *A, int N){
     for(int i = 0; i < N*N; i++){
         A[i] = (float)rand()/RAND_MAX;
-        //A[i] = 1;
     }
 }
 
 void printImage(float *A, int N){
     int j = 0;
     for(int i = 0; i < N*N; i++){
-        printf("%f ",A[i]);
+        printf("%f\n",A[i]);
         j++;
-        if(j == N){
-            printf("\n");
-            j = 0;
-        }
-
     }
-}
-
-
-void comparar(float *A, float *B, int N){
-    int x = 0;
-    for(int i = 0; i < N*N; i++){
-        if(A[i] != B[i]){
-            printf("Son distintos en la posicion %i\n", i);
-            x = 1;
-        }
-    }
-    if(x == 0) printf("\n>>>>>>> Somos iguales <<<<<<<<<< \n");
 }
 
 __host__ int main(int argc, char **argv){
@@ -148,9 +110,9 @@ __host__ int main(int argc, char **argv){
 
     //Generación de imagen random
     randomImage(h_A, N);
-    //printf("Imagen Original:\n ");
-    //printImage(h_A, N);
-    //printf("\n\n");
+    printf("Imagen Original:\n ");
+    printImage(h_A, N);
+    printf("\n");
 
     //Se empieza a medir el tiempo en GPU
     cudaEvent_t start, stop;
@@ -183,9 +145,7 @@ __host__ int main(int argc, char **argv){
 
     //Se imprime por consola la imagen nueva y el tiempo de ejecución en GPU
     printf("Imagen Resultante en GPU:\n ");
-    //printImage(h_B, N);
-    printf("Tiempo de Ejecucion GPU: %f seg.\n", elapsedTime/1000);
-    printf("\n\n");
+    printImage(h_B, N);
 
     //Se empieza a medir tiempo en CPU
     double time_spent = 0.0;
@@ -194,17 +154,15 @@ __host__ int main(int argc, char **argv){
     //Llamado a la función de suma en CPU
     suma2D_CPU(h_A, h_C, N, V);
     printf("Imagen Resultante en CPU:\n ");
-    //printImage(h_C, N);
+    printImage(h_C, N);
 
     //Se termina de medir tiempo en CPU
     clock_t end = clock(); 
     time_spent += (double)(end-begin)/CLOCKS_PER_SEC;
-    printf("Tiempo de Ejecucion CPU: %f seg.\n", time_spent);
 
-    //writeNumbers("text1.txt", h_B, size);
-    //writeNumbers("text2.txt", h_C, size);
-    //comparar(h_B, h_C, N);
-    //printf("%f-%f-%f\n",h_A[5], h_B[5], h_C[5]);
+    printf("Tiempo de Ejecucion GPU: %f seg.\n", elapsedTime/1000);
+    printf("Tiempo de Ejecucion CPU: %f seg.\n", time_spent);
+    
     //Se libera memoria solicitada
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
